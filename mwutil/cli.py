@@ -20,7 +20,6 @@ def main():
         "down",
         "dump",
         "elasticsearch",
-        "install",
         "lint",
         "list-repo-remotes",
         "phan",
@@ -35,8 +34,7 @@ def main():
         "shell",
         "sql",
         "up",
-        "update",
-        "update-symlinks"
+        "update"
     ]
 
     debug = os.getenv("MWUTIL_DEBUG")
