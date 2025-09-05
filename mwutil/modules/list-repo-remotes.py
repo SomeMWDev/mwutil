@@ -13,8 +13,14 @@ class ListRepoRemotes(MWUtilModule):
         pass
 
     def execute(self, config, args):
+        print("Extensions:")
+        self.list_folder(config.basedir / "extensions")
+        print("\nSkins:")
+        self.list_folder(config.basedir / "skins")
+
+    def list_folder(self, parent_folder):
         repo_remotes = {}
-        for folder in config.basedir.iterdir():
+        for folder in parent_folder.iterdir():
             if not folder.is_dir():
                 # not a folder
                 continue

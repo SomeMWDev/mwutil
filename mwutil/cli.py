@@ -20,7 +20,6 @@ def main():
         "down",
         "dump",
         "elasticsearch",
-        "install",
         "lint",
         "list-repo-remotes",
         "phan",
@@ -35,8 +34,7 @@ def main():
         "shell",
         "sql",
         "up",
-        "update",
-        "update-symlinks"
+        "update"
     ]
 
     debug = os.getenv("MWUTIL_DEBUG")
@@ -52,6 +50,9 @@ def main():
 
     # Load config
     config = load_mwutil_config(basedir)
+
+    # Load .env from core
+    load_core_env(config)
 
     loaded: dict[str, MWUtilModule] = {}
     for modname in module_names:
@@ -72,9 +73,6 @@ def main():
 
     argcomplete.autocomplete(parser)
     args = parser.parse_args()
-
-    # Load .env from core
-    load_core_env(config)
 
     if hasattr(args, "func"):
         args.func(config, args)

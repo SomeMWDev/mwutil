@@ -5,16 +5,16 @@ from mwutil.module import MWUtilModule
 from mwutil.utils import run_container_command, LazyChoicesCompleter
 
 
-def _get_scripts(coredir):
+def _get_scripts(config):
     scripts = []
-    scripts_folder = coredir / "maintenance"
+    scripts_folder = config.coredir / "maintenance"
 
     file: Path
     for file in scripts_folder.iterdir():
         if file.is_file() and file.suffix == ".php":
             scripts.append(file.stem)
 
-    for extension_folder in (coredir / "extensions").iterdir():
+    for extension_folder in (config.basedir / "extensions").iterdir():
         maintenance_folder = extension_folder / "maintenance"
         if not maintenance_folder.is_dir():
             continue
@@ -32,7 +32,7 @@ class Run(MWUtilModule):
 
     def populate_subparser(self, parser, config):
         def get_scripts():
-            return _get_scripts(config.coredir)
+            return _get_scripts(config)
 
         parser.add_argument(
             "script",

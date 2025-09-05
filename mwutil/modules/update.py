@@ -11,5 +11,4 @@ class Update(MWUtilModule):
         pass
 
     def execute(self, config, args):
-        config.modules["update-symlinks"].execute(config, Namespace())
         config.modules["run"].execute(config, Namespace(script="update", extra_args=["--quick"]))

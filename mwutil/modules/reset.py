@@ -36,7 +36,7 @@ class Reset(MWUtilModule):
             f"--dbserver={dbhost}",
             f"--server={os.getenv("MW_SERVER")}",
             f"--scriptpath={os.getenv("SCRIPT_PATH")}",
-            "--lang=en",
+            f"--lang={os.getenv("MW_LANG")}",
             f"--pass={os.getenv("MEDIAWIKI_PASSWORD")}",
             "mediawiki",
             os.getenv("MEDIAWIKI_USER")
