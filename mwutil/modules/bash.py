@@ -3,7 +3,7 @@ import os
 from argcomplete import ChoicesCompleter
 
 from mwutil.module import MWUtilModule
-from mwutil.utils import run_container_command, run_command
+from mwutil.utils import run_container_command, run_command, run_docker_command
 
 
 class Bash(MWUtilModule):
@@ -15,10 +15,10 @@ class Bash(MWUtilModule):
         containers = []
 
         if os.getenv("_ARGCOMPLETE") == "1":
-            containers = run_command(
-                ["docker", "compose", "ps", "--services"],
-                config.coredir,
-                True
+            containers = run_docker_command(
+                config,
+                ["ps", "--services"],
+                capture_output=True
             ).stdout.decode().splitlines()
 
         parser.add_argument(

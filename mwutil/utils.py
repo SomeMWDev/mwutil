@@ -98,7 +98,7 @@ def run_docker_command(config: MWUtilConfig, command: list[str], capture_output=
         "docker", "compose", "-p", os.getenv("DOCKER_COMPOSE_PROJECT_NAME")
     ] + command
 
-    return subprocess.run(cmd, cwd=config.coredir, capture_output=capture_output, input=input_text, text=text)
+    return subprocess.run(cmd, cwd=config.basedir, capture_output=capture_output, input=input_text, text=text)
 
 
 def run_container_command(

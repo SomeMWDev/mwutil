@@ -18,11 +18,11 @@ class UpdateSymlinks(MWUtilModule):
                 # not a folder
                 continue
             name = folder.stem
-            if name.startswith(".") and name != ".mw-config":
+            if name.startswith("."):
                 # hidden folder
                 continue
-            if folder == config.coredir or folder == config.dumpdir:
-                # don't symlink core or the dump directory
+            if folder == config.coredir or folder == config.dumpdir or folder.stem == 'vendor':
+                # don't symlink core, dumps or vendor
                 continue
 
             extension_link = extensions_folder / name
