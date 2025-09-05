@@ -62,6 +62,7 @@ class DBType(Enum):
 @dataclass
 class MWUtilConfig:
     basedir: Path
+    configdir: Path
     coredir: Path
     dumpdir: Path
     env: dict = None
@@ -72,6 +73,8 @@ def load_mwutil_config(basedir: Path) -> MWUtilConfig:
     file = basedir / ".mwutil.json"
     json_data = json.load(open(file))
 
+    configdir_name = json_data.get("configdir") or "config"
+    configdir = basedir / configdir_name
     coredir_name = json_data.get("coredir") or "core"
     coredir = basedir / coredir_name
     dumpdir_name = json_data.get("dumpdir") or "dumps"
@@ -79,12 +82,13 @@ def load_mwutil_config(basedir: Path) -> MWUtilConfig:
 
     return MWUtilConfig(
         basedir,
+        configdir,
         coredir,
         dumpdir
     )
 
 def load_core_env(config: MWUtilConfig):
-    env_file = config.coredir / ".env"
+    env_file = config.configdir / ".env"
     load_dotenv(dotenv_path=env_file)
 
     config.dbtype = DBType.from_string(os.getenv("MWC_DB_TYPE"))
