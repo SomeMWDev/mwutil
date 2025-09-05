@@ -1,0 +1,17 @@
+[project]
+name = "mwutil"
+version = "0.1.0"
+description = "CLI tool that helps managing MediaWiki development environments"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "argcomplete>=3.6.2",
+    "python-dotenv>=1.1.1",
+]
+[project.scripts]
+mwutil = "mwutil.cli:main"
+
+[dependency-groups]
+dev = [
+    "ruff>=0.12.9",
+]
