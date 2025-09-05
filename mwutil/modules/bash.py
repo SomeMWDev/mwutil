@@ -1,9 +1,5 @@
-import os
-
-from argcomplete import ChoicesCompleter
-
 from mwutil.module import MWUtilModule
-from mwutil.utils import run_container_command, run_command, run_docker_command
+from mwutil.utils import run_container_command, run_docker_command, LazyChoicesCompleter
 
 
 class Bash(MWUtilModule):
@@ -12,14 +8,12 @@ class Bash(MWUtilModule):
         return "Start a bash shell in a container"
 
     def populate_subparser(self, parser, config):
-        containers = []
-
-        if os.getenv("_ARGCOMPLETE") == "1":
-            containers = run_docker_command(
+        def get_containers():
+            return run_docker_command(
                 config,
                 ["ps", "--services"],
                 capture_output=True
-            ).stdout.decode().splitlines()
+            ).stdout.splitlines()
 
         parser.add_argument(
             '-c',
@@ -27,7 +21,7 @@ class Bash(MWUtilModule):
             type=str,
             help="The container name",
             default="mediawiki"
-        ).completer = ChoicesCompleter(containers)
+        ).completer = LazyChoicesCompleter(get_containers)
 
     def execute(self, config, args):
         run_container_command(config, ["bash"], args.container)

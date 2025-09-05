@@ -51,6 +51,9 @@ def main():
     # Load config
     config = load_mwutil_config(basedir)
 
+    # Load .env from core
+    load_core_env(config)
+
     loaded: dict[str, MWUtilModule] = {}
     for modname in module_names:
         mod = importlib.import_module(f"mwutil.modules.{modname}")
@@ -70,9 +73,6 @@ def main():
 
     argcomplete.autocomplete(parser)
     args = parser.parse_args()
-
-    # Load .env from core
-    load_core_env(config)
 
     if hasattr(args, "func"):
         args.func(config, args)
