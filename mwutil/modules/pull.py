@@ -12,6 +12,8 @@ class Pull(MWUtilModule):
         return "Pull an extension or a skin"
 
     def populate_subparser(self, parser, config):
+        parser.add_argument("type", choices=["extension", "skin"], help="Type of repo to pull")
+
         parser.add_argument("--name", help="Name of extension or skin")
 
         origin_group = parser.add_mutually_exclusive_group(required=True)
@@ -20,7 +22,7 @@ class Pull(MWUtilModule):
         # example: StarCitizenTools/mediawiki-skins-Citizen
         origin_group.add_argument("--github", type=str, help="Pull a repo from Github")
 
-        parser.add_argument("--quick", action='store_true', help="Pull with --depth=1")
+        parser.add_argument("--shallow", "--quick", action='store_true', help="Pull with --depth=1")
         parser.add_argument("--method", type=str, default="ssh", choices=["ssh", "https"],
                             help="The method that should be used to pull the repo")
 
@@ -53,17 +55,19 @@ class Pull(MWUtilModule):
         if args.name:
             name = args.name
 
+        target_folder_name = args.type + "s"
+        target_folder = config.basedir / target_folder_name
         command = [
             "git",
             "clone",
             origin,
             name
         ]
-        if args.quick:
+        if args.shallow:
             command.extend(["--depth", "1"])
-        run_command(command, config.basedir)
+        run_command(command, target_folder)
 
-        os.chdir(config.basedir / name)
+        os.chdir(target_folder / name)
         if args.gerrit:
             config.modules["setup-gerrit"].execute(config, Namespace())
         elif args.github:
