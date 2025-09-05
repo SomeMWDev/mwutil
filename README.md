@@ -5,8 +5,8 @@ A CLI tool which helps managing MediaWiki development environments.
 ## Installation
 
 Requirements:
-* bash
 * [uv](https://docs.astral.sh/uv/)
+* for autocompletion: bash or zsh
 
 ```sh
 cd /path/to/mwutil
@@ -21,11 +21,20 @@ echo "{}" > /path/to/basedir/.mwutil.json
 
 ### Autocompletion
 
+Bash:
 ```sh
 uv tool install argcomplete
 activate-global-python-argcomplete
 echo 'eval "$(register-python-argcomplete mwutil)"' >> ~/.bashrc
 source ~/.bashrc
+```
+
+Zsh:
+```sh
+uv tool install argcomplete
+activate-global-python-argcomplete
+echo 'eval "$(register-python-argcomplete mwutil)"' >> ~/.zshrc
+source ~/.zshrc
 ```
 
 ## Features
