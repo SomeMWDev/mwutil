@@ -5,6 +5,7 @@ from enum import Enum
 from subprocess import CompletedProcess
 from typing import Callable
 
+import dotenv
 from argcomplete.completers import BaseCompleter
 from dotenv import load_dotenv
 import json
@@ -93,10 +94,19 @@ def load_core_env(config: MWUtilConfig):
 
     config.dbtype = DBType.from_string(os.getenv("MWC_DB_TYPE"))
 
+def set_env_key(config: MWUtilConfig, key: str, value: str):
+    env_file = config.configdir / ".env"
+    dotenv.set_key(env_file, key, value)
+
 def run_docker_command(config: MWUtilConfig, command: list[str], capture_output=False, input_text: str | None = None, text: bool = True) -> CompletedProcess:
     cmd = [
         "docker", "compose", "-p", os.getenv("DOCKER_COMPOSE_PROJECT_NAME")
-    ] + command
+    ]
+
+    for name in get_profiles(config):
+        cmd += ["--profile", name]
+
+    cmd += command
 
     return subprocess.run(cmd, cwd=config.basedir, capture_output=capture_output, input=input_text, text=text)
 
@@ -182,3 +192,52 @@ class LazyChoicesCompleter(BaseCompleter):
     def __call__(self, **kwargs):
         return (self._convert(c) for c in self.choices_function())
 
+def get_data_file(config: MWUtilConfig) -> Path:
+    return config.basedir / ".mwutil.data.json"
+
+def get_data_entry(config: MWUtilConfig, key: str, default=None):
+    data_file = get_data_file(config)
+    if not data_file.exists():
+        return default
+
+    try:
+        with data_file.open("r", encoding="utf-8") as f:
+            data = json.load(f)
+        return data.get(key, default)
+    except (json.JSONDecodeError, OSError):
+        return default
+
+def set_data_entry(config: MWUtilConfig, key: str, value):
+    data_file = get_data_file(config)
+
+    if data_file.exists():
+        try:
+            with data_file.open("r", encoding="utf-8") as f:
+                data = json.load(f)
+        except (json.JSONDecodeError, OSError):
+            data = {}
+    else:
+        data = {}
+
+    data[key] = value
+
+    with data_file.open("w", encoding="utf-8") as f:
+        json.dump(data, f, indent=4)
+
+def get_profiles(config: MWUtilConfig) -> list[str]:
+    return get_data_entry(config, "profiles", [])
+
+def save_profiles(config: MWUtilConfig, profiles: list[str]):
+    set_data_entry(config, "profiles", profiles)
+
+def disable_profile(config: MWUtilConfig, profile: str):
+    profiles = get_profiles(config)
+    if profile in profiles:
+        profiles.remove(profile)
+        save_profiles(config, profiles)
+
+def enable_profile(config: MWUtilConfig, profile: str):
+    profiles = get_profiles(config)
+    if profile not in profiles:
+        profiles.append(profile)
+        save_profiles(config, profiles)

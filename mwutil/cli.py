@@ -17,6 +17,7 @@ def main():
     module_names = [
         "add-gerrit-ssh-key",
         "bash",
+        "db",
         "down",
         "dump",
         "elasticsearch",
