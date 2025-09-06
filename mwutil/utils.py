@@ -225,7 +225,11 @@ def set_data_entry(config: MWUtilConfig, key: str, value):
         json.dump(data, f, indent=4)
 
 def get_profiles(config: MWUtilConfig) -> list[str]:
-    return get_data_entry(config, "profiles", [])
+    profiles = get_data_entry(config, "profiles", [])
+    if not "mysql" in profiles and not "mariadb" in profiles:
+        profiles.append(config.dbtype.db_name)
+        save_profiles(config, profiles)
+    return profiles
 
 def save_profiles(config: MWUtilConfig, profiles: list[str]):
     set_data_entry(config, "profiles", profiles)
