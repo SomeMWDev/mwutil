@@ -1,3 +1,5 @@
+import argparse
+
 from mwutil.module import MWUtilModule
 from mwutil.utils import run_container_command, run_docker_command, LazyChoicesCompleter
 
@@ -23,5 +25,12 @@ class Bash(MWUtilModule):
             default="mediawiki"
         ).completer = LazyChoicesCompleter(get_containers)
 
+        parser.add_argument(
+            "command",
+            nargs=argparse.REMAINDER,
+            help="Additional arguments to pass to PHPUnit"
+        )
+
     def execute(self, config, args):
-        run_container_command(config, ["bash"], args.container)
+        command = args.command if args.command else ["bash"]
+        run_container_command(config, command, args.container)
