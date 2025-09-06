@@ -1,7 +1,7 @@
 from argparse import Namespace
 
 from mwutil.module import MWUtilModule
-from mwutil.utils import run_container_command, disable_profile, enable_profile, run_docker_command, get_profiles
+from mwutil.utils import run_container_command, disable_profile, enable_profile, run_docker_command
 
 
 class ElasticSearch(MWUtilModule):

@@ -226,7 +226,7 @@ def set_data_entry(config: MWUtilConfig, key: str, value):
 
 def get_profiles(config: MWUtilConfig) -> list[str]:
     profiles = get_data_entry(config, "profiles", [])
-    if not "mysql" in profiles and not "mariadb" in profiles:
+    if "mysql" not in profiles and "mariadb" not in profiles:
         profiles.append(config.dbtype.db_name)
         save_profiles(config, profiles)
     return profiles
