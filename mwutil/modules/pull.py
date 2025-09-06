@@ -3,7 +3,7 @@ import re
 from argparse import Namespace
 
 from mwutil.module import MWUtilModule
-from mwutil.utils import run_command
+from mwutil.utils import run_command, run_container_command
 
 
 class Pull(MWUtilModule):
@@ -73,4 +73,5 @@ class Pull(MWUtilModule):
         elif args.github:
             config.modules["setup-github"].execute(config, Namespace())
 
+        run_container_command(config, ["composer", "update"], "mediawiki")
         config.modules["update"].execute(config, Namespace())
