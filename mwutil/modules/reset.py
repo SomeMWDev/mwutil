@@ -2,7 +2,7 @@ import os
 from argparse import Namespace
 
 from mwutil.module import MWUtilModule
-from mwutil.utils import run_sql_query
+from mwutil.utils import run_sql_query, run_container_command
 
 
 class Reset(MWUtilModule):
@@ -14,6 +14,9 @@ class Reset(MWUtilModule):
         pass
 
     def execute(self, config, args):
+        print("Deleting uploads...")
+        run_container_command(config, ["rm", "-rf", "/var/www/html/w/images/*"], "mediawiki")
+
         database = os.getenv("MWC_DB_DATABASE")
         print("Dropping database...")
         run_sql_query(config, f"DROP DATABASE `{database}`;")
