@@ -30,13 +30,17 @@ class Pull(MWUtilModule):
         name = ""
         origin = ""
         if args.gerrit:
+            repo = args.gerrit
+            if "/" in repo:
+                name = repo.split("/")[-1]
+            else:
+                name = repo
+                repo = f"{args.type}s/{repo}"
             if args.method == "ssh":
                 gerrit_username = os.getenv("GERRIT_USERNAME")
-                origin = f"ssh://{gerrit_username}@gerrit.wikimedia.org:29418/mediawiki/{args.gerrit}"
+                origin = f"ssh://{gerrit_username}@gerrit.wikimedia.org:29418/mediawiki/{repo}"
             elif args.method == "https":
-                origin = f"https://gerrit.wikimedia.org/r/mediawiki/{args.gerrit}"
-
-            name = args.gerrit.split("/")[-1]
+                origin = f"https://gerrit.wikimedia.org/r/mediawiki/{repo}"
         elif args.github:
             if args.method == "ssh":
                 origin = f"git@github.com:{args.github}"
