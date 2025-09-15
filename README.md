@@ -13,6 +13,8 @@ Requirements:
 * [uv](https://docs.astral.sh/uv/)
 * for autocompletion: bash or zsh
 
+Either use `uv tool install git+https://github.com/SomeMWDev/mwutil`, or clone and install the tool manually:
+
 ```sh
 cd /path/to/mwutil
 uv tool install . -e
