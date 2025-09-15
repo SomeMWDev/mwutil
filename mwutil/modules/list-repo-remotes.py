@@ -7,7 +7,7 @@ from mwutil.utils import run_command
 class ListRepoRemotes(MWUtilModule):
 
     def get_description(self):
-        return "List the remotes of all repos in the basedir"
+        return "List the remotes of all extension and skin repos"
 
     def populate_subparser(self, parser, config):
         pass
