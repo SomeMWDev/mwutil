@@ -22,8 +22,8 @@ class Clone(MWUtilModule):
         parser.add_argument("--shallow", "--quick", action='store_true', help="Pull with --depth=1")
         parser.add_argument("--method", type=str, default="ssh", choices=["ssh", "https"],
                             help="The method that should be used to pull the repo")
-
         parser.add_argument("--composer", action='store_true', help="Run composer update after cloning")
+        parser.add_argument("--branch", type=str, help="Branch to clone")
 
     def execute(self, config, args):
         name = ""
@@ -68,6 +68,8 @@ class Clone(MWUtilModule):
         ]
         if args.shallow:
             command.extend(["--depth", "1"])
+        if args.branch:
+            command.extend(["--branch", args.branch])
         run_command(command, target_folder)
 
         os.chdir(target_folder / name)
