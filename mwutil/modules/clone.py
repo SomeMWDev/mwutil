@@ -1,6 +1,7 @@
 import os
 import re
 from argparse import Namespace
+from pathlib import Path
 
 from mwutil.module import MWUtilModule
 from mwutil.utils import run_command, run_container_command
@@ -79,5 +80,5 @@ class Clone(MWUtilModule):
             config.modules["setup-github"].execute(config, Namespace())
 
         if args.composer:
-            run_container_command(config, ["composer", "update"], "mediawiki")
+            config.modules["composer"].execute(config, Namespace(folder=Path(f"/var/www/html/w/{target_folder_name}/{name}"), extra_args=[]))
         config.modules["update"].execute(config, Namespace())
