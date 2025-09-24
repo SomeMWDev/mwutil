@@ -4,7 +4,7 @@ from argparse import Namespace
 from pathlib import Path
 
 from mwutil.module import MWUtilModule
-from mwutil.utils import run_command, run_container_command
+from mwutil.utils import run_command
 
 
 class Clone(MWUtilModule):
