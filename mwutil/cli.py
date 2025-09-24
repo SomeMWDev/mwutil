@@ -18,6 +18,7 @@ def main():
         "add-gerrit-ssh-key",
         "bash",
         "clone",
+        "composer",
         "db",
         "down",
         "dump",
