@@ -17,6 +17,7 @@ def main():
     module_names = [
         "add-gerrit-ssh-key",
         "bash",
+        "clone",
         "db",
         "down",
         "dump",
@@ -25,7 +26,6 @@ def main():
         "list-repo-remotes",
         "phan",
         "phpunit",
-        "pull",
         "recreate",
         "reset",
         "run",

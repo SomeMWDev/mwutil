@@ -6,31 +6,30 @@ from mwutil.module import MWUtilModule
 from mwutil.utils import run_command, run_container_command
 
 
-class Pull(MWUtilModule):
+class Clone(MWUtilModule):
 
     def get_description(self):
-        return "Pull an extension or a skin"
+        return "Clone an extension or a skin"
 
     def populate_subparser(self, parser, config):
         parser.add_argument("type", choices=["extension", "skin"], help="Type of repo to pull")
 
         parser.add_argument("--name", help="Name of extension or skin")
 
-        origin_group = parser.add_mutually_exclusive_group(required=True)
-        # example: extensions/UserVerification
-        origin_group.add_argument("--gerrit", type=str, help="Pull a repo from gerrit")
-        # example: StarCitizenTools/mediawiki-skins-Citizen
-        origin_group.add_argument("--github", type=str, help="Pull a repo from Github")
+        parser.add_argument("origin", choices=["github", "gerrit"], help="Origin of repo")
+        parser.add_argument("repo", help="Repo to pull")
 
         parser.add_argument("--shallow", "--quick", action='store_true', help="Pull with --depth=1")
         parser.add_argument("--method", type=str, default="ssh", choices=["ssh", "https"],
                             help="The method that should be used to pull the repo")
+        parser.add_argument("--composer", action='store_true', help="Run composer update after cloning")
+        parser.add_argument("--branch", type=str, help="Branch to clone")
 
     def execute(self, config, args):
         name = ""
         origin = ""
-        if args.gerrit:
-            repo = args.gerrit
+        repo = args.repo
+        if args.origin == "gerrit":
             if "/" in repo:
                 name = repo.split("/")[-1]
             else:
@@ -41,13 +40,13 @@ class Pull(MWUtilModule):
                 origin = f"ssh://{gerrit_username}@gerrit.wikimedia.org:29418/mediawiki/{repo}"
             elif args.method == "https":
                 origin = f"https://gerrit.wikimedia.org/r/mediawiki/{repo}"
-        elif args.github:
+        elif args.origin == "github":
             if args.method == "ssh":
-                origin = f"git@github.com:{args.github}"
+                origin = f"git@github.com:{args.repo}"
             elif args.method == "https":
-                origin = f"https://github.com/{args.github}.git"
+                origin = f"https://github.com/{args.repo}.git"
 
-            name = args.github.split("/")[-1]
+            name = repo.split("/")[-1]
             regex = re.compile("mediawiki-(?:extension|skin)s?-(.*)")
             result = re.search(regex, name)
             if result:
@@ -69,13 +68,16 @@ class Pull(MWUtilModule):
         ]
         if args.shallow:
             command.extend(["--depth", "1"])
+        if args.branch:
+            command.extend(["--branch", args.branch])
         run_command(command, target_folder)
 
         os.chdir(target_folder / name)
-        if args.gerrit:
+        if args.origin == "gerrit":
             config.modules["setup-gerrit"].execute(config, Namespace())
-        elif args.github:
+        elif args.origin == "github":
             config.modules["setup-github"].execute(config, Namespace())
 
-        run_container_command(config, ["composer", "update"], "mediawiki")
+        if args.composer:
+            run_container_command(config, ["composer", "update"], "mediawiki")
         config.modules["update"].execute(config, Namespace())
