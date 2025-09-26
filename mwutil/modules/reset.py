@@ -54,4 +54,7 @@ class Reset(MWUtilModule):
         print("Resetting Elasticsearch...")
         config.modules["elasticsearch"].execute(config, Namespace(action="reset"))
 
+        print("Recreating containers...")
+        config.modules["recreate"].execute(config, Namespace())
+
         print("Done!")
