@@ -131,8 +131,46 @@ def run_container_command(
 def run_command(command: list[str], path: Path | None = None, capture_output=False) -> CompletedProcess:
     return subprocess.run(command, cwd=path, capture_output=capture_output)
 
+def run_wiki_db_command(
+    config: MWUtilConfig,
+    command: list[str] | str,
+    options: list[str],
+    **kwargs
+) -> CompletedProcess:
+    # TODO move to config
+    user = os.getenv("MWC_DB_USER")
+    password = os.getenv("MWC_DB_PASSWORD")
+    return run_db_command(
+        config,
+        user,
+        password,
+        command,
+        options,
+        **kwargs
+    )
+
+def run_root_db_command(
+    config: MWUtilConfig,
+    command: list[str] | str,
+    options: list[str],
+    **kwargs
+) -> CompletedProcess:
+    user = "root"
+    # TODO move to config
+    password = os.getenv("MWC_DB_ROOT_PASSWORD")
+    return run_db_command(
+        config,
+        user,
+        password,
+        command,
+        options,
+        **kwargs
+    )
+
 def run_db_command(
         config: MWUtilConfig,
+        user: str,
+        password: str,
         command: list[str] | str,
         options: list[str],
         exec_options: list[str] | None = None,
@@ -140,10 +178,6 @@ def run_db_command(
         input_text: str | None = None,
         text: bool = True
 ) -> CompletedProcess:
-    # TODO move to config
-    user = os.getenv("MWC_DB_USER")
-    password = os.getenv("MWC_DB_PASSWORD")
-
     if type(command) is str:
         command = [command]
 

@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 
 from mwutil.module import MWUtilModule
-from mwutil.utils import LazyChoicesCompleter, run_sql_query, run_db_command
+from mwutil.utils import LazyChoicesCompleter, run_sql_query, run_wiki_db_command
 
 
 class Dump(MWUtilModule):
@@ -40,14 +40,13 @@ class Dump(MWUtilModule):
 
         if args.action == "create":
             print("Creating dump...")
-            dump_text = run_db_command(
+            dump_text = run_wiki_db_command(
                 config,
                 config.dbtype.dump_command,
                 [
                     database
                 ],
-                [],
-                True,
+                capture_output=True,
                 text=False # it breaks otherwise
             ).stdout.decode('latin1')
             dump.touch()
@@ -58,14 +57,14 @@ class Dump(MWUtilModule):
             run_sql_query(config, f"CREATE DATABASE IF NOT EXISTS `{database}`;")
             print("Importing dump...")
             with open(dump, "r") as f:
-                run_db_command(
+                run_wiki_db_command(
                     config,
                     config.dbtype.query_command,
                     [
                         database
                     ],
-                    ["-T"],
-                    False,
+                    exec_options=["-T"],
+                    capture_output=False,
                     input_text=f.read()
                 )
 
