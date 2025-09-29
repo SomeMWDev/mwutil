@@ -81,4 +81,5 @@ class Clone(MWUtilModule):
 
         if args.composer:
             config.modules["composer"].execute(config, Namespace(folder=Path(f"/var/www/html/w/{target_folder_name}/{name}"), extra_args=[]))
-        config.modules["update"].execute(config, Namespace())
+        if args.type == "extension":
+            config.modules["update"].execute(config, Namespace())
