@@ -198,7 +198,7 @@ def run_sql_query(
         config: MWUtilConfig,
         query: str
 ) -> subprocess.CompletedProcess:
-    return run_db_command(
+    return run_wiki_db_command(
         config,
         config.dbtype.get_query_command(),
         [
