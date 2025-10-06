@@ -125,7 +125,7 @@ def run_container_command(
 ) -> CompletedProcess:
     if command[0] != "bash":
         # avoid "OCI runtime exec failed: exec failed: unable to start container process: ..."
-        command = ["bash", "-c"] + command
+        command = ["bash", "-c"] + [" ".join(command)]
     if workdir and not workdir.startswith("/"):
         # resolve relative paths against the MW installation directory
         workdir = config.mw_install_path + "/" + workdir
