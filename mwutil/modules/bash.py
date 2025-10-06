@@ -18,12 +18,20 @@ class Bash(MWUtilModule):
             ).stdout.splitlines()
 
         parser.add_argument(
-            '-c',
-            '--container',
+            "-c",
+            "--container",
             type=str,
             help="The container name",
             default="mediawiki"
         ).completer = LazyChoicesCompleter(get_containers)
+
+        parser.add_argument(
+            "-f",
+            "--folder",
+            type=str,
+            default=config.mw_install_path,
+            nargs="?"
+        )
 
         parser.add_argument(
             "command",
@@ -33,4 +41,4 @@ class Bash(MWUtilModule):
 
     def execute(self, config, args):
         command = args.command if args.command else ["bash"]
-        run_container_command(config, command, args.container)
+        run_container_command(config, command, args.container, workdir=args.folder)
