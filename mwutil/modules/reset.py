@@ -15,7 +15,11 @@ class Reset(MWUtilModule):
 
     def execute(self, config, args):
         print("Deleting uploads...")
-        run_container_command(config, ["rm", "-rf", "/var/www/html/w/images/*"], "mediawiki")
+        run_container_command(
+            config,
+            ["rm", "-rf", "images/*"],
+            "mediawiki"
+        )
 
         database = os.getenv("MWC_DB_DATABASE")
         print("Dropping database...")

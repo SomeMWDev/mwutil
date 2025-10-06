@@ -1,4 +1,4 @@
-from pathlib import Path
+from argparse import Namespace
 from subprocess import CompletedProcess
 
 from mwutil.module import MWUtilModule
@@ -15,26 +15,18 @@ class Phan(MWUtilModule):
         # TODO auto-complete e.g. extensions/Echo
         parser.add_argument(
             "folder",
-            type=Path,
-            default="/var/www/html/w",
+            type=str,
+            default=config.mw_install_path,
             nargs="?"
         )
 
     def execute(self, config, args):
         def run_phan_command() -> CompletedProcess:
-            return run_container_command(config, [
-                "bash",
-                "-c",
-                f"cd '{args.folder}' && composer run test"
-            ])
+            return run_container_command(config, ["vendor/bin/phan -d . --long-progress-bar"], workdir=args.folder)
 
         result = run_phan_command()
-        if result.returncode != 127:
+        if result.returncode == 127:
             print("Failed to run phan. Attempting to update dependencies...")
-            run_container_command(config, [
-                "bash",
-                "-c",
-                f"cd '{args.folder}' && MW_INSTALL_PATH=/var/www/html/w vendor/bin/phan -d . --long-progress-bar"
-            ])
+            config.modules["composer"].execute(config, Namespace(folder=args.folder, extra_args=[]))
             print("Retrying...")
             run_phan_command()

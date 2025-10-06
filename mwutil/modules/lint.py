@@ -1,4 +1,4 @@
-from pathlib import Path
+from argparse import Namespace
 from subprocess import CompletedProcess
 
 from mwutil.module import MWUtilModule
@@ -14,26 +14,20 @@ class Lint(MWUtilModule):
         # TODO auto-complete e.g. extensions/Echo
         parser.add_argument(
             "folder",
-            type=Path,
-            default="/var/www/html/w",
+            type=str,
+            default=config.mw_install_path,
             nargs="?"
         )
 
     def execute(self, config, args):
         def run_lint_command() -> CompletedProcess:
             return run_container_command(config, [
-                "bash",
-                "-c",
-                f"cd '{args.folder}' && composer run test"
-            ])
+                "composer run test"
+            ], workdir=args.folder)
 
         result = run_lint_command()
         if result.returncode == 127:
             print("Failed to lint. Attempting to update dependencies...")
-            run_container_command(config, [
-                "bash",
-                "-c",
-                f"cd '{args.folder}' && composer update"
-            ])
+            config.modules["composer"].execute(config, Namespace(folder=args.folder, extra_args=[]))
             print("Retrying...")
             run_lint_command()

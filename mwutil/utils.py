@@ -69,6 +69,7 @@ class MWUtilConfig:
     env: dict = None
     modules: dict = None
     dbtype: DBType = None
+    mw_install_path: str = None
 
 def load_mwutil_config(basedir: Path) -> MWUtilConfig:
     file = basedir / ".mwutil.json"
@@ -93,6 +94,7 @@ def load_core_env(config: MWUtilConfig):
     load_dotenv(dotenv_path=env_file)
 
     config.dbtype = DBType.from_string(os.getenv("MWC_DB_TYPE"))
+    config.mw_install_path = os.getenv("MW_INSTALL_PATH")
 
 def set_env_key(config: MWUtilConfig, key: str, value: str):
     env_file = config.configdir / ".env"
@@ -118,11 +120,20 @@ def run_container_command(
     exec_options: list[str] | None = None,
     capture_output=False,
     input_text: str | None = None,
-    text: bool = True
+    text: bool = True,
+    workdir: str | None = None
 ) -> CompletedProcess:
+    if command[0] != "bash":
+        # avoid "OCI runtime exec failed: exec failed: unable to start container process: ..."
+        command = ["bash", "-c"] + command
+    if workdir and not workdir.startswith("/"):
+        # resolve relative paths against the MW installation directory
+        workdir = config.mw_install_path + "/" + workdir
+    # Use the MW installation directory provided in .env by default (#13)
+    exec_options = ["-w", (workdir or config.mw_install_path)] + (exec_options or [])
     return run_docker_command(
         config,
-        ["exec"] + (exec_options or []) + [container_name] + command,
+        ["exec"] + exec_options + [container_name] + command,
         capture_output=capture_output,
         input_text=input_text,
         text=text

@@ -1,5 +1,4 @@
 import argparse
-from pathlib import Path
 
 from mwutil.module import MWUtilModule
 from mwutil.utils import run_container_command
@@ -13,8 +12,8 @@ class Composer(MWUtilModule):
     def populate_subparser(self, parser, config):
         parser.add_argument(
             "folder",
-            type=Path,
-            default="/var/www/html/w",
+            type=str,
+            default=config.mw_install_path,
             nargs="?"
         )
 
@@ -27,7 +26,5 @@ class Composer(MWUtilModule):
 
     def execute(self, config, args):
         run_container_command(config, [
-            "bash",
-            "-c",
-            f"cd '{args.folder}' && composer update " + " ".join(args.extra_args)
-        ])
+            "composer update " + " ".join(args.extra_args)
+        ], workdir=args.folder)
