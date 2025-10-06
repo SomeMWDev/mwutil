@@ -215,7 +215,8 @@ def run_sql_query(
         config.dbtype.get_query_command(),
         [
             "-e",
-            query
+            # single quotes around the query so backticks don't get interpreted by the shell
+            f"'{query}'"
         ]
     )
 
