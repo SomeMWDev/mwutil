@@ -11,7 +11,8 @@ class Composer(MWUtilModule):
 
     def populate_subparser(self, parser, config):
         parser.add_argument(
-            "folder",
+            "-f",
+            "--folder",
             type=str,
             default=config.mw_install_path,
             nargs="?"
