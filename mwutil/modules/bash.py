@@ -34,6 +34,13 @@ class Bash(MWUtilModule):
         )
 
         parser.add_argument(
+            "-r",
+            "--root",
+            action="store_true",
+            help="Execute the command as a root user in the container"
+        )
+
+        parser.add_argument(
             "command",
             nargs=argparse.REMAINDER,
             help="Additional arguments to pass to PHPUnit"
@@ -41,4 +48,5 @@ class Bash(MWUtilModule):
 
     def execute(self, config, args):
         command = args.command if args.command else ["bash"]
-        run_container_command(config, command, args.container, workdir=args.folder)
+        exec_options = ["-u", "root"] if args.root else []
+        run_container_command(config, command, args.container, exec_options=exec_options, workdir=args.folder)
