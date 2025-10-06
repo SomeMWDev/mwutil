@@ -129,8 +129,9 @@ def run_container_command(
     if workdir and not workdir.startswith("/"):
         # resolve relative paths against the MW installation directory
         workdir = config.mw_install_path + "/" + workdir
-    # Use the MW installation directory provided in .env by default (#13)
-    exec_options = ["-w", (workdir or config.mw_install_path)] + (exec_options or [])
+    # For mediawiki containers, use the MW installation directory provided in .env by default (#13)
+    workdir_option = ["-w", (workdir or config.mw_install_path)] if container_name.startswith("mediawiki") else []
+    exec_options = workdir_option + (exec_options or [])
     return run_docker_command(
         config,
         ["exec"] + exec_options + [container_name] + command,
