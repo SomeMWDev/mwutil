@@ -79,6 +79,6 @@ class Clone(MWUtilModule):
             config.modules["setup-github"].execute(config, Namespace())
 
         if args.composer:
-            config.modules["composer"].execute(config, Namespace(folder=f"{target_folder_name}/{name}", extra_args=[]))
+            config.modules["composer"].execute(config, Namespace(folder=config.mw_install_path, extra_args=[]))
         if args.type == "extension":
             config.modules["update"].execute(config, Namespace())
