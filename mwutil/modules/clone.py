@@ -1,7 +1,6 @@
 import os
 import re
 from argparse import Namespace
-from pathlib import Path
 
 from mwutil.module import MWUtilModule
 from mwutil.utils import run_command
@@ -80,6 +79,6 @@ class Clone(MWUtilModule):
             config.modules["setup-github"].execute(config, Namespace())
 
         if args.composer:
-            config.modules["composer"].execute(config, Namespace(folder=Path(f"{target_folder_name}/{name}"), extra_args=[]))
+            config.modules["composer"].execute(config, Namespace(folder=f"{target_folder_name}/{name}", extra_args=[]))
         if args.type == "extension":
             config.modules["update"].execute(config, Namespace())
