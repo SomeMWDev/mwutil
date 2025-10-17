@@ -12,7 +12,7 @@ class Clone(MWUtilModule):
         return "Clone an extension or a skin"
 
     def populate_subparser(self, parser, config):
-        parser.add_argument("type", choices=["extension", "skin"], help="Type of repo to pull")
+        parser.add_argument("type", choices=["extension", "skin", "service"], help="Type of repo to pull")
 
         parser.add_argument("--name", help="Name of extension or skin")
 
@@ -47,7 +47,7 @@ class Clone(MWUtilModule):
                 origin = f"https://github.com/{args.repo}.git"
 
             name = repo.split("/")[-1]
-            regex = re.compile("mediawiki-(?:extension|skin)s?-(.*)")
+            regex = re.compile("mediawiki-(?:extension|skin|service)s?-(.*)")
             result = re.search(regex, name)
             if result:
                 name = result.group(1)
