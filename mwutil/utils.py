@@ -71,6 +71,7 @@ class MWUtilConfig:
     modules: dict = None
     dbtype: DBType = None
     mw_install_path: str = None
+    mw_branch: str = None
 
 def load_mwutil_config(basedir: Path) -> MWUtilConfig:
     file = basedir / ".mwutil.json"
@@ -96,6 +97,7 @@ def load_core_env(config: MWUtilConfig):
 
     config.dbtype = DBType.from_string(os.getenv("MWC_DB_TYPE"))
     config.mw_install_path = os.getenv("MW_INSTALL_PATH")
+    config.mw_branch = os.getenv("MW_BRANCH") or "master"
 
 def set_env_key(config: MWUtilConfig, key: str, value: str):
     env_file = config.configdir / ".env"

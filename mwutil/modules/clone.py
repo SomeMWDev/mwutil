@@ -23,7 +23,7 @@ class Clone(MWUtilModule):
         parser.add_argument("--method", type=str, default="ssh", choices=["ssh", "https"],
                             help="The method that should be used to pull the repo")
         parser.add_argument("--composer", action='store_true', help="Run composer update after cloning")
-        parser.add_argument("--branch", type=str, help="Branch to clone")
+        parser.add_argument("--branch", type=str, help="Branch to clone", default=None)
 
     def execute(self, config, args):
         name = ""
@@ -60,17 +60,33 @@ class Clone(MWUtilModule):
 
         target_folder_name = args.type + "s"
         target_folder = config.basedir / target_folder_name
-        command = [
-            "git",
-            "clone",
-            origin,
-            name
-        ]
-        if args.shallow:
-            command.extend(["--depth", "1"])
+
+        def clone(shallow: bool, branch: str | None) -> int:
+            command = [
+                "git",
+                "clone",
+                origin,
+                name
+            ]
+            if shallow:
+                command.extend(["--depth", "1"])
+            if branch:
+                command.extend(["--branch", branch])
+            return run_command(command, target_folder).returncode
+
         if args.branch:
-            command.extend(["--branch", args.branch])
-        run_command(command, target_folder)
+            clone(args.shallow, args.branch)
+        else:
+            # try to clone core branch first
+            exit_code = clone(args.shallow, config.mw_branch)
+            # TODO: validate the git error message here! it looks something like
+            # "fatal: Remote branch REL1_44 not found in upstream origin" and is printed to stderr.
+            # However, we don't want to capture the output of the git command right now (as it would break the progress
+            # bar), so we just rely on the exit code for now.
+            if exit_code == 128:
+                # fallback to default branch
+                print(f"Branch {config.mw_branch} not found, cloning default branch instead.")
+                clone(args.shallow, None)
 
         os.chdir(target_folder / name)
         if args.origin == "gerrit":
