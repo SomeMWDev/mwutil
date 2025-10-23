@@ -2,7 +2,7 @@ import argparse
 from pathlib import Path
 
 from mwutil.module import MWUtilModule
-from mwutil.utils import run_container_command, LazyChoicesCompleter
+from mwutil.utils import run_container_command, LazyChoicesCompleter, get_core_version
 
 
 def _get_scripts(config):
@@ -46,4 +46,10 @@ class Run(MWUtilModule):
         )
 
     def execute(self, config, args):
-        run_container_command(config, ["maintenance/run", args.script] + args.extra_args)
+        core_version = get_core_version(config)
+        if core_version is None or core_version.minor >= 40:
+            # MW 1.40+: Use run.php
+            run_container_command(config, ["maintenance/run", args.script] + args.extra_args)
+        else:
+            # MW 1.39 or earlier
+            run_container_command(config, ["php", "maintenance/" + args.script + ".php"] + args.extra_args)

@@ -1,4 +1,5 @@
 import os
+import re
 import subprocess
 from dataclasses import dataclass
 from enum import Enum
@@ -292,3 +293,37 @@ def enable_profile(config: MWUtilConfig, profile: str):
     if profile not in profiles:
         profiles.append(profile)
         save_profiles(config, profiles)
+
+@dataclass
+class MWVersion:
+    major: int
+    minor: int
+    patch: int
+    suffix: str | None = None
+
+    def __str__(self):
+        version = f"{self.major}.{self.minor}.{self.patch}"
+        if self.suffix:
+            version += f"-{self.suffix}"
+        return version
+
+    @staticmethod
+    def parse(version_str: str) -> 'MWVersion':
+        match = re.match(r"(\d+)\.(\d+)\.(\d+)(?:-([a-zA-Z0-9]+))?", version_str)
+        if not match:
+            raise ValueError(f"Invalid version string: {version_str}")
+        major, minor, patch, suffix = match.groups()
+        return MWVersion(int(major), int(minor), int(patch), suffix)
+
+def get_core_version(config: MWUtilConfig) -> MWVersion | None:
+    version_file = config.coredir / "includes" / "Defines.php"
+    if not version_file.is_file():
+        return None
+
+    regex = re.compile(r"'MW_VERSION', '([a-zA-Z0-9\-.]+)'")
+    with version_file.open("r", encoding="utf-8") as f:
+        for line in f:
+            match = regex.search(line)
+            if match:
+                return MWVersion.parse(match.group(1))
+    return None
