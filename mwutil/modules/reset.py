@@ -18,7 +18,7 @@ class Reset(MWUtilModule):
         print("Deleting uploads...")
         run_container_command(
             config,
-            ["rm", "-rf", "images/*"],
+            ["find", "images", "-mindepth", "1", "!", "-name", "README", "-exec", "rm", "-rf", "{}", "+"],
             "mediawiki"
         )
 
