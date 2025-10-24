@@ -151,6 +151,20 @@ class Init(GlobalMWUtilModule):
             run_command(console, ["git", "clone", repo_url, project_name], debug)
         print_success(console, f"Successfully cloned mw-dev-kit into '{project_name}'.")
 
+    @staticmethod
+    def get_git_option(option: str) -> str | None:
+        try:
+            result = subprocess.run(
+                ["git", "config", "--get", option],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                check=True,
+                text=True,
+            )
+            return result.stdout.strip()
+        except subprocess.CalledProcessError:
+            return ""
+
     ENV_OPTIONS = [
         # TODO consider select thingy here
         EnvOption(
@@ -307,12 +321,14 @@ class Init(GlobalMWUtilModule):
         EnvOption(
             "GIT_USERNAME",
             "Enter your Git username you generally use",
+            default=lambda options, project_name: Init.get_git_option("user.name"),
             examples=["YourUsername"],
         ),
         EnvOption(
             "GIT_EMAIL",
             "Enter your Git email you generally use",
             validation_pattern=r"^[^@]+@[^@]+\.[^@]+$",
+            default=lambda options, project_name: Init.get_git_option("user.email"),
             examples=["my@example.email"],
         ),
         # TODO SECURITY_PATCH_FOLDER could be questioned in security.py?
