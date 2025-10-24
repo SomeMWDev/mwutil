@@ -2,12 +2,24 @@ import os
 import re
 import subprocess
 from argparse import ArgumentParser, Namespace
+from dataclasses import dataclass
+from typing import Callable
 
+import dotenv
 import questionary
 from rich.console import Console
 
 from mwutil.local_config import MWUtilConfig
 from mwutil.module import GlobalMWUtilModule
+
+@dataclass
+class EnvOption:
+    key: str
+    prompt: str
+    default: str | Callable[[dict[str, str], str], str] | None = None
+    advanced: bool = False
+    validation_pattern: str | None = None
+    reference: str | None = None
 
 class Init(GlobalMWUtilModule):
 
@@ -41,6 +53,8 @@ class Init(GlobalMWUtilModule):
         self.validate_project_name(console, args.project_name)
 
         self.clone_mw_dev_kit(console, args.project_name, debug)
+        os.chdir(args.project_name)
+        self.configure_env(console, args.project_name, args.advanced, debug)
 
     @staticmethod
     def check_prerequisites(console: Console, debug: bool | None):
@@ -108,9 +122,83 @@ class Init(GlobalMWUtilModule):
             repo_url = "git@github.com:SomeMWDev/mw-dev-kit.git"
         else:
             repo_url = questionary.text("Enter the custom repository URL:").ask()
-        with console.status("Cloning mw-dev-kit...\n", spinner="dots"):
+        with console.status("Cloning mw-dev-kit...", spinner="dots"):
             run_command(console, ["git", "clone", repo_url, project_name], debug)
         print_success(console, f"Successfully cloned mw-dev-kit into '{project_name}'.")
+
+    ENV_OPTIONS = [
+        EnvOption(
+            "MW_SCRIPT_PATH",
+            "Enter the script path for MediaWiki",
+            default="/w",
+            advanced=True,
+            reference="https://www.mediawiki.org/wiki/Manual:$wgScriptPath"
+        ),
+        EnvOption(
+            "MW_DOCKER_PORT",
+            "Enter the port to expose MediaWiki on your host machine",
+            default="8080",
+            validation_pattern=r"^\d{2,5}$",
+        ),
+        EnvOption(
+            "MW_SERVER",
+            "Enter the server name for MediaWiki",
+            default=lambda options, project_name: f"http://localhost:{options['MW_DOCKER_PORT']}",
+            advanced=True,
+            reference="https://www.mediawiki.org/wiki/Manual:$wgServer"
+        ),
+        EnvOption(
+            "MW_LANG",
+            "Enter the default language code for MediaWiki",
+            default="en",
+            reference="https://www.mediawiki.org/wiki/Manual:$wgLanguageCode"
+        )
+    ]
+
+    @staticmethod
+    def configure_env(console: Console, project_name: str, advanced: bool, debug: bool | None):
+        with console.status("Copying example environment file...", spinner="dots"):
+            run_command(console, ["cp", "config/.env.example", "config/.env"], debug)
+        print_success(console, "Copied .env.example to .env.")
+
+        options = {}
+        for option in Init.ENV_OPTIONS:
+            if option.advanced and not advanced:
+                default = option.default
+                if default is None:
+                    raise ValueError(f"No default value for non-interactive option {option.key}")
+                elif callable(default):
+                    options[option.key] = default(options, project_name)
+                else:
+                    options[option.key] = default
+                continue
+
+            default_value = ""
+            if callable(option.default):
+                default_value = option.default(options, project_name)
+            elif option.default is not None:
+                default_value = option.default
+
+            while True:
+                answer = questionary.text(
+                    option.prompt + (f" (Reference: {option.reference})" if option.reference else "") + ":",
+                    default=default_value
+                ).ask()
+
+                if option.validation_pattern:
+                    if not re.match(option.validation_pattern, answer):
+                        print_failure(console, f"Invalid input. Please ensure it matches the pattern: {option.validation_pattern}")
+                        continue
+
+                options[option.key] = answer
+                break
+
+        # overwrite .env with the collected options. Assume keys already exist in .env.example
+        with console.status("Configuring .env file...", spinner="dots"):
+            for key, value in options.items():
+                env_file = os.path.join("config", ".env")
+                dotenv.set_key(env_file, key, value)
+        print_success(console, "Successfully configured .env file.")
 
 def print_success(console: Console, message: str):
     console.print(f"[bold green]✔ {message}")
