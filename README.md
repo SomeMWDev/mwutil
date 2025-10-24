@@ -48,6 +48,13 @@ source ~/.zshrc
 
 ## Features
 
+### Creating a new dev environment
+
+1. Go to a folder where you want to create the new environment (it will create a subfolder there).
+2. Run `mwutil init <project-name>`
+   * The project name will be used as the folder name. It has to match `^[a-zA-Z0-9_-]+$`
+3. Follow the instructions
+
 ### Database dumps
 
 Dumps will be stored in a subdirectory of the basedir, which can be configured via the `dumpdir` option in the JSON
