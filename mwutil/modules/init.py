@@ -66,7 +66,18 @@ class Init(GlobalMWUtilModule):
 
         self.clone_mw_dev_kit(console, args.project_name, debug)
         os.chdir(args.project_name)
+
         self.configure_env(console, args.project_name, args.advanced, debug)
+        # load env file instead of using the configured values so we can be sure we have all defaults
+        dotenv.load_dotenv(os.path.join("config", ".env"))
+
+        self.clone_core(console, debug)
+        self.setup_config_files(console, debug)
+
+        self.install(console, debug)
+        self.post_install(console, debug)
+
+        console.print(Panel.fit("[bold green]MediaWiki development environment initialized successfully![/bold green]", border_style="green"))
 
     @staticmethod
     def check_prerequisites(console: Console, debug: bool | None):
@@ -322,7 +333,7 @@ class Init(GlobalMWUtilModule):
         EnvOption(
             "GERRIT_USERNAME",
             "Enter your Gerrit username used to clone repositories via SSH",
-            examples=["YourGerritUsername"],
+            examples=["yourgerritusername"],
         ),
         # TODO GERRIT_SSH_KEY could be questioned somewhere else?
     ]
@@ -399,6 +410,7 @@ class Init(GlobalMWUtilModule):
                 console.clear()
                 break
 
+        console.clear()
         # overwrite .env with the collected options. Assume keys already exist in .env.example
         with console.status("Configuring .env file...", spinner="dots"):
             for key, value in options.items():
@@ -406,6 +418,84 @@ class Init(GlobalMWUtilModule):
                 dotenv.set_key(env_file, key, value)
 
         print_success(console, "Successfully configured .env file.")
+
+    @staticmethod
+    def clone_core(console: Console, debug: bool | None):
+        with console.status("Cloning MediaWiki core (this may take some time)...", spinner="dots"):
+            command = [
+                "git",
+                "clone",
+                f"ssh://{os.getenv("GERRIT_USERNAME")}@gerrit.wikimedia.org:29418/mediawiki/core",
+                "-b",
+                os.getenv("MW_BRANCH"),
+            ]
+            run_command(console, command, debug)
+        print_success(console, "Successfully cloned MediaWiki core.")
+
+    @staticmethod
+    def setup_config_files(console: Console, debug: bool | None):
+        with console.status("Linking composer.local.json...", spinner="dots"):
+            run_command(console, [
+                "ln",
+                "core-composer.local.json",
+                "core/composer.local.json",
+            ], debug)
+        print_success(console, "Linked composer.local.json.")
+
+        with console.status("Creating .mwutil.json...", spinner="dots"):
+            default_config = {}
+            with open(".mwutil.json", "w") as f:
+                import json
+                json.dump(default_config, f, indent=4)
+        print_success(console, "Created .mwutil.json.")
+
+        with console.status("Copying and linking default LocalSettings.php...", spinner="dots"):
+            run_command(console, [
+                "cp",
+                "LocalSettings.default.php",
+                "LocalSettings.php",
+            ], debug)
+            run_command(console, [
+                "ln",
+                "LocalSettings.php",
+                "core/LocalSettings.php",
+            ], debug)
+        print_success(console, "Copied and linked LocalSettings.php.")
+
+    @staticmethod
+    def install(console: Console, debug: bool | None):
+        with console.status("Starting the containers...", spinner="dots"):
+            run_command(console, ["mwutil", "up"], debug)
+        print_success(console, "Containers started.")
+
+        with console.status("Installing composer dependencies...", spinner="dots"):
+            run_command(console, ["mwutil", "bash", "composer", "install"], debug)
+        print_success(console, "Composer dependencies installed.")
+
+        with console.status("Installing MediaWiki...", spinner="dots"):
+            run_command(console, ["mwutil", "reset"], debug)
+        print_success(console, "MediaWiki installed successfully!")
+
+    @staticmethod
+    def post_install(console: Console, debug: bool | None):
+        with console.status("Setting up git-review in the local core git repository...", spinner="dots"):
+            run_command(console, ["mwutil", "setup-gerrit"], debug, "core")
+        print_success(console, "git-review setup completed.")
+
+        clone_vector = questionary.confirm(
+            "Do you want to clone the Vector skin?",
+            default=True,
+        ).ask()
+        if clone_vector:
+            with console.status("Cloning Vector skin into skins/ folder...", spinner="dots"):
+                run_command(console, ["mwutil", "clone", "skin", "gerrit", "Vector"], debug)
+            print_success(console, "Cloned Vector skin.")
+
+            with console.status("Enabling Vector as the default skin in LocalSettings.php...", spinner="dots"):
+                line = r"MediaWikiConfig::getInstance()->Vector( true );"
+                with open("LocalSettings.php", "a") as f:
+                    f.write(f"\n{line}\n")
+            print_success(console, "Enabled Vector as the default skin.")
 
 def print_success(console: Console, message: str):
     console.print(f"[bold green]✔ {message}")
@@ -425,7 +515,7 @@ def print_info(console: Console, message: str):
 def print_detail(console: Console, message: str):
     console.print(f"[bright black]{message}")
 
-def run_command(console: Console, command: list[str], debug: bool | None):
+def run_command(console: Console, command: list[str], debug: bool | None, cwd: str | None = None):
     # if debug is enabled, print the command being run
     if debug:
         print_detail(console, f"Running command: {' '.join(command)}")
@@ -437,6 +527,7 @@ def run_command(console: Console, command: list[str], debug: bool | None):
             check=True,
             stdout=stdout,
             stderr=stderr,
+            cwd=cwd
         )
     except subprocess.CalledProcessError:
         if debug:
