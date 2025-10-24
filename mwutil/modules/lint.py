@@ -1,7 +1,7 @@
 from argparse import Namespace, ArgumentParser
 from subprocess import CompletedProcess
 
-from mwutil.config import MWUtilConfig
+from mwutil.local_config import MWUtilConfig
 from mwutil.exec import run_container_command
 from mwutil.module import MWUtilModule
 

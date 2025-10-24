@@ -3,7 +3,7 @@ import re
 from argparse import ArgumentParser, Namespace
 from pathlib import Path
 
-from mwutil.config import MWUtilConfig
+from mwutil.local_config import MWUtilConfig
 from mwutil.constants import SUPPORTED_BRANCHES
 from mwutil.exec import run_command
 from mwutil.module import MWUtilModule

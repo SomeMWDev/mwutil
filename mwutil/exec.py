@@ -3,7 +3,7 @@ import subprocess
 from pathlib import Path
 from subprocess import CompletedProcess
 
-from mwutil.config import MWUtilConfig
+from mwutil.local_config import MWUtilConfig
 from mwutil.data_state import get_profiles
 
 

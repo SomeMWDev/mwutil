@@ -6,7 +6,7 @@ import dotenv
 from argcomplete.completers import BaseCompleter
 from dotenv import load_dotenv
 
-from mwutil.config import populate_config_from_env, MWUtilConfig
+from mwutil.local_config import populate_config_from_env, MWUtilConfig
 
 
 def load_core_env(config: MWUtilConfig):

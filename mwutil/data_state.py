@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-from mwutil.config import MWUtilConfig
+from mwutil.local_config import MWUtilConfig
 
 
 def get_data_file(config: MWUtilConfig) -> Path:

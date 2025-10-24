@@ -2,7 +2,7 @@ from argparse import ArgumentParser, Namespace
 from collections import OrderedDict
 from pathlib import Path
 
-from mwutil.config import MWUtilConfig
+from mwutil.local_config import MWUtilConfig
 from mwutil.exec import run_command
 from mwutil.module import MWUtilModule
 

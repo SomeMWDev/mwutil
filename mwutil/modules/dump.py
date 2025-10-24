@@ -2,7 +2,7 @@ import os
 from argparse import ArgumentParser, Namespace
 from pathlib import Path
 
-from mwutil.config import MWUtilConfig
+from mwutil.local_config import MWUtilConfig
 from mwutil.exec import run_wiki_db_command, run_sql_query
 from mwutil.module import MWUtilModule
 from mwutil.utils import LazyChoicesCompleter

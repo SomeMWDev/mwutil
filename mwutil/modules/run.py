@@ -2,7 +2,7 @@ import argparse
 from argparse import ArgumentParser, Namespace
 from pathlib import Path
 
-from mwutil.config import MWUtilConfig
+from mwutil.local_config import MWUtilConfig
 from mwutil.exec import run_container_command
 from mwutil.module import MWUtilModule
 from mwutil.utils import LazyChoicesCompleter, get_core_version
