@@ -11,6 +11,7 @@ from mwutil.module import MWUtilModule, GlobalMWUtilModule
 from mwutil.utils import load_core_env
 
 GLOBAL_MODULE_NAMES = [
+    "init",
     "security"
 ]
 
