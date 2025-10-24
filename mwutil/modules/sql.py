@@ -1,7 +1,8 @@
 import argparse
-from argparse import Namespace
+from argparse import Namespace, ArgumentParser
 from os import getenv
 
+from mwutil.config import MWUtilConfig
 from mwutil.exec import run_root_db_command
 from mwutil.module import MWUtilModule
 
@@ -11,7 +12,7 @@ class SQL(MWUtilModule):
     def get_description(self):
         return "Start an SQL shell"
 
-    def populate_subparser(self, parser, config):
+    def populate_subparser(self, parser: ArgumentParser, config: MWUtilConfig):
         parser.add_argument("--root", action="store_true", help="Log in as root user")
         parser.add_argument(
             "extra_args",
@@ -19,7 +20,7 @@ class SQL(MWUtilModule):
             help="Additional arguments to pass to the SQL command",
         )
 
-    def execute(self, config, args):
+    def execute(self, config: MWUtilConfig, args: Namespace):
         if args.root:
             db = getenv("MWC_DB_DATABASE")
             run_root_db_command(

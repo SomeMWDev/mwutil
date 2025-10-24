@@ -1,5 +1,8 @@
+from argparse import ArgumentParser, Namespace
 from collections import OrderedDict
+from pathlib import Path
 
+from mwutil.config import MWUtilConfig
 from mwutil.exec import run_command
 from mwutil.module import MWUtilModule
 
@@ -9,16 +12,17 @@ class ListRepoRemotes(MWUtilModule):
     def get_description(self):
         return "List the remotes of all extension and skin repos"
 
-    def populate_subparser(self, parser, config):
+    def populate_subparser(self, parser: ArgumentParser, config: MWUtilConfig):
         pass
 
-    def execute(self, config, args):
+    def execute(self, config: MWUtilConfig, args: Namespace):
         print("Extensions:")
         self.list_folder(config.basedir / "extensions")
         print("\nSkins:")
         self.list_folder(config.basedir / "skins")
 
-    def list_folder(self, parent_folder):
+    @staticmethod
+    def list_folder(parent_folder: Path):
         repo_remotes = {}
         for folder in parent_folder.iterdir():
             if not folder.is_dir():

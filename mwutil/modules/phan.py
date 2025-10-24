@@ -1,6 +1,7 @@
-from argparse import Namespace
+from argparse import Namespace, ArgumentParser
 from subprocess import CompletedProcess
 
+from mwutil.config import MWUtilConfig
 from mwutil.exec import run_container_command
 from mwutil.module import MWUtilModule
 
@@ -11,7 +12,7 @@ class Phan(MWUtilModule):
     def get_description(self):
         return "Run phan in a certain directory"
 
-    def populate_subparser(self, parser, config):
+    def populate_subparser(self, parser: ArgumentParser, config: MWUtilConfig):
         # TODO auto-complete e.g. extensions/Echo
         parser.add_argument(
             "folder",
@@ -20,7 +21,7 @@ class Phan(MWUtilModule):
             nargs="?"
         )
 
-    def execute(self, config, args):
+    def execute(self, config: MWUtilConfig, args: Namespace):
         def run_phan_command() -> CompletedProcess:
             return run_container_command(config, ["vendor/bin/phan -d . --long-progress-bar"], workdir=args.folder)
 

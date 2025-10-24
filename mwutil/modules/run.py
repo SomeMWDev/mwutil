@@ -1,12 +1,14 @@
 import argparse
+from argparse import ArgumentParser, Namespace
 from pathlib import Path
 
+from mwutil.config import MWUtilConfig
 from mwutil.exec import run_container_command
 from mwutil.module import MWUtilModule
 from mwutil.utils import LazyChoicesCompleter, get_core_version
 
 
-def _get_scripts(config):
+def _get_scripts(config: MWUtilConfig):
     scripts = []
     scripts_folder = config.coredir / "maintenance"
 
@@ -31,7 +33,7 @@ class Run(MWUtilModule):
     def get_description(self):
         return "Run a maintenance script"
 
-    def populate_subparser(self, parser, config):
+    def populate_subparser(self, parser: ArgumentParser, config: MWUtilConfig):
         def get_scripts():
             return _get_scripts(config)
 
@@ -46,7 +48,7 @@ class Run(MWUtilModule):
             help="Additional arguments to pass to the maintenance script",
         )
 
-    def execute(self, config, args):
+    def execute(self, config: MWUtilConfig, args: Namespace):
         core_version = get_core_version(config)
         if core_version is None or core_version.minor >= 40:
             # MW 1.40+: Use run.php
