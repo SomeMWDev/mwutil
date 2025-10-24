@@ -8,9 +8,10 @@ import questionary
 from questionary import Separator
 from rich.console import Console
 from rich.panel import Panel
+from rich.progress import Progress
 from rich.table import Table
 
-from mwutil.env import EnvOptionMode, ENV_OPTIONS
+from mwutil.env import EnvOptionMode, ENV_OPTIONS, EnvOption
 from mwutil.local_config import MWUtilConfig
 from mwutil.module import GlobalMWUtilModule
 
@@ -143,8 +144,17 @@ class Init(GlobalMWUtilModule):
         console.clear()
 
         options = {}
+
+        def is_manual_question(opt: EnvOption):
+            return not (
+                opt.mode == EnvOptionMode.ADVANCED and not advanced
+                or opt.mode == EnvOptionMode.AUTOMATIC
+            )
+
+        expected_question_amount = len(list(filter(is_manual_question, ENV_OPTIONS)))
+        answered_questions = 0
         for option in ENV_OPTIONS:
-            if (option.mode == EnvOptionMode.ADVANCED and not advanced) or option.mode == EnvOptionMode.AUTOMATIC:
+            if not is_manual_question(option):
                 default = option.default
                 if default is None:
                     raise ValueError(f"No default value for non-interactive option {option.key}")
@@ -183,6 +193,12 @@ class Init(GlobalMWUtilModule):
             if option.mode == EnvOptionMode.ADVANCED:
                 table.add_row("Mode", "Advanced")
 
+            with Progress() as progress:
+                progress.add_task(
+                    "[green]Progress:",
+                    total=expected_question_amount,
+                    completed=answered_questions,
+                )
             console.print(Panel.fit(table, title=f"Configure: [bold green]{option.prompt}[/bold green]", border_style="green"))
 
             message = f"Enter value for {option.key}"
@@ -221,6 +237,7 @@ class Init(GlobalMWUtilModule):
             answer = question.ask()
             if answer is None:
                 exit(1)
+            answered_questions += 1
             options[option.key] = answer
             console.clear()
 
