@@ -1,44 +1,48 @@
+import argparse
+import importlib
+import inspect
 import os
 from pathlib import Path
 
 import argcomplete
-import argparse
-import importlib
 
 from mwutil.local_config import find_mwutil_config, load_mwutil_config
-from mwutil.module import MWUtilModule
+from mwutil.module import MWUtilModule, GlobalMWUtilModule
 from mwutil.utils import load_core_env
 
+GLOBAL_MODULE_NAMES = [
+    "security"
+]
+
+MODULE_NAMES = [
+    "add-gerrit-ssh-key",
+    "bash",
+    "clone",
+    "composer",
+    "db",
+    "down",
+    "dump",
+    "elasticsearch",
+    "lint",
+    "list-repo-remotes",
+    "phan",
+    "phpunit",
+    "recreate",
+    "reset",
+    "run",
+    "security",
+    "setup-gerrit",
+    "setup-github",
+    "shell",
+    "sql",
+    "up",
+    "update"
+]
 
 def main():
     parser = argparse.ArgumentParser(description="Manage MediaWiki development environments")
 
     subparsers = parser.add_subparsers(help="Run a module")
-
-    module_names = [
-        "add-gerrit-ssh-key",
-        "bash",
-        "clone",
-        "composer",
-        "db",
-        "down",
-        "dump",
-        "elasticsearch",
-        "lint",
-        "list-repo-remotes",
-        "phan",
-        "phpunit",
-        "recreate",
-        "reset",
-        "run",
-        "security",
-        "setup-gerrit",
-        "setup-github",
-        "shell",
-        "sql",
-        "up",
-        "update"
-    ]
 
     debug = os.getenv("MWUTIL_DEBUG")
 
@@ -47,26 +51,18 @@ def main():
         basedir: Path = find_mwutil_config()
         if debug:
             print(f"Found .mwutil.json in {basedir}")
-    except FileNotFoundError as e:
-        print(e)
-        exit(1)
 
-    # Load config
-    config = load_mwutil_config(basedir)
+        # Load config
+        config = load_mwutil_config(basedir)
+        load_core_env(config)
+        loaded = load_modules(MODULE_NAMES)
+        config.modules = loaded
+    except FileNotFoundError:
+        if debug:
+            print(".mwutil.json not found, loading global modules only")
 
-    # Load .env from core
-    load_core_env(config)
-
-    loaded: dict[str, MWUtilModule] = {}
-    for modname in module_names:
-        mod = importlib.import_module(f"mwutil.modules.{modname}")
-
-        for attr in dir(mod):
-            obj = getattr(mod, attr)
-            if isinstance(obj, type) and issubclass(obj, MWUtilModule) and obj is not MWUtilModule:
-                loaded[modname] = obj() # instantiate
-
-    config.modules = loaded
+        loaded = load_modules(GLOBAL_MODULE_NAMES)
+        config = None
 
     for modname, mod in loaded.items():
         mod_parser = subparsers.add_parser(modname, help=mod.get_description())
@@ -81,3 +77,20 @@ def main():
         args.func(config, args)
     else:
         parser.print_help()
+
+def load_modules(module_names: list[str]) -> dict[str, MWUtilModule]:
+    loaded: dict[str, MWUtilModule] = {}
+    for modname in module_names:
+        mod = importlib.import_module(f"mwutil.modules.{modname}")
+
+        for attr in dir(mod):
+            obj = getattr(mod, attr)
+            if (
+                isinstance(obj, type)
+                and issubclass(obj, MWUtilModule)
+                and obj not in {MWUtilModule, GlobalMWUtilModule}
+                and not inspect.isabstract(obj)
+            ):
+                loaded[modname] = obj()  # instantiate
+
+    return loaded
