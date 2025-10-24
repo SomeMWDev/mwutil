@@ -1,6 +1,8 @@
 import os
+from argparse import ArgumentParser, Namespace
 from pathlib import Path
 
+from mwutil.config import MWUtilConfig
 from mwutil.exec import run_wiki_db_command, run_sql_query
 from mwutil.module import MWUtilModule
 from mwutil.utils import LazyChoicesCompleter
@@ -11,7 +13,7 @@ class Dump(MWUtilModule):
     def get_description(self):
         return "Manage database dumps"
 
-    def populate_subparser(self, parser, config):
+    def populate_subparser(self, parser: ArgumentParser, config: MWUtilConfig):
         parser.add_argument("action", type=str, choices=["create", "delete", "import"])
 
         def get_dumps():
@@ -24,7 +26,7 @@ class Dump(MWUtilModule):
 
         parser.add_argument("dumpname", type=str).completer = LazyChoicesCompleter(get_dumps)
 
-    def execute(self, config, args):
+    def execute(self, config: MWUtilConfig, args: Namespace):
         if not config.dumpdir.exists():
             print("Creating dump directory...")
             config.dumpdir.mkdir()

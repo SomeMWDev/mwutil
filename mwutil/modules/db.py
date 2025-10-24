@@ -1,7 +1,8 @@
 import time
 import uuid
-from argparse import Namespace
+from argparse import Namespace, ArgumentParser
 
+from mwutil.config import MWUtilConfig
 from mwutil.data_state import disable_profile, enable_profile
 from mwutil.module import MWUtilModule
 from mwutil.utils import set_env_key
@@ -12,13 +13,13 @@ class DB(MWUtilModule):
     def get_description(self):
         return "Manage the DB for MediaWiki"
 
-    def populate_subparser(self, parser, config):
+    def populate_subparser(self, parser: ArgumentParser, config: MWUtilConfig):
         subparsers = parser.add_subparsers(help="The action to perform", dest="action")
 
         switch_parser = subparsers.add_parser("switch")
         switch_parser.add_argument("db", choices=["mysql", "mariadb"], help="The database to switch to")
 
-    def execute(self, config, args):
+    def execute(self, config: MWUtilConfig, args: Namespace):
         if args.action == "switch":
             dbtype = args.db
             if config.dbtype.db_name == dbtype:

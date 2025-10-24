@@ -1,6 +1,7 @@
-from argparse import Namespace
+from argparse import Namespace, ArgumentParser
 from subprocess import CompletedProcess
 
+from mwutil.config import MWUtilConfig
 from mwutil.exec import run_container_command
 from mwutil.module import MWUtilModule
 
@@ -10,7 +11,7 @@ class Lint(MWUtilModule):
     def get_description(self):
         return "Lint the code in a certain directory"
 
-    def populate_subparser(self, parser, config):
+    def populate_subparser(self, parser: ArgumentParser, config: MWUtilConfig):
         # TODO auto-complete e.g. extensions/Echo
         parser.add_argument(
             "folder",
@@ -19,7 +20,7 @@ class Lint(MWUtilModule):
             nargs="?"
         )
 
-    def execute(self, config, args):
+    def execute(self, config: MWUtilConfig, args: Namespace):
         def run_lint_command() -> CompletedProcess:
             return run_container_command(config, [
                 "composer run test"

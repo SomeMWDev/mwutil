@@ -1,5 +1,7 @@
 import argparse
+from argparse import ArgumentParser, Namespace
 
+from mwutil.config import MWUtilConfig
 from mwutil.exec import run_container_command
 from mwutil.module import MWUtilModule
 
@@ -9,7 +11,7 @@ class Composer(MWUtilModule):
     def get_description(self):
         return "Run composer update in core or a specific directory"
 
-    def populate_subparser(self, parser, config):
+    def populate_subparser(self, parser: ArgumentParser, config: MWUtilConfig):
         parser.add_argument(
             "-f",
             "--folder",
@@ -25,7 +27,7 @@ class Composer(MWUtilModule):
         )
         pass
 
-    def execute(self, config, args):
+    def execute(self, config: MWUtilConfig, args: Namespace):
         run_container_command(config, [
             "composer update " + " ".join(args.extra_args)
         ], workdir=args.folder)

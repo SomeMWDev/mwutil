@@ -1,7 +1,8 @@
 import os
 import re
-from argparse import Namespace
+from argparse import Namespace, ArgumentParser
 
+from mwutil.config import MWUtilConfig
 from mwutil.exec import run_command
 from mwutil.module import MWUtilModule
 
@@ -11,7 +12,7 @@ class Clone(MWUtilModule):
     def get_description(self):
         return "Clone an extension or a skin"
 
-    def populate_subparser(self, parser, config):
+    def populate_subparser(self, parser: ArgumentParser, config: MWUtilConfig):
         parser.add_argument("type", choices=["extension", "skin", "service"], help="Type of repo to pull")
 
         parser.add_argument("--name", help="Name of extension or skin")
@@ -25,7 +26,7 @@ class Clone(MWUtilModule):
         parser.add_argument("--composer", action='store_true', help="Run composer update after cloning")
         parser.add_argument("--branch", type=str, help="Branch to clone", default=None)
 
-    def execute(self, config, args):
+    def execute(self, config: MWUtilConfig, args: Namespace):
         name = ""
         origin = ""
         repo = args.repo

@@ -1,6 +1,7 @@
 import os
-from argparse import Namespace
+from argparse import Namespace, ArgumentParser
 
+from mwutil.config import MWUtilConfig
 from mwutil.exec import run_sql_query, run_container_command
 from mwutil.module import MWUtilModule
 
@@ -10,10 +11,10 @@ class Reset(MWUtilModule):
     def get_description(self):
         return "Drop the wiki's database and reinstall it"
 
-    def populate_subparser(self, parser, config):
+    def populate_subparser(self, parser: ArgumentParser, config: MWUtilConfig):
         pass
 
-    def execute(self, config, args):
+    def execute(self, config: MWUtilConfig, args: Namespace):
         print("Deleting uploads...")
         run_container_command(
             config,

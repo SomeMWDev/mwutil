@@ -11,7 +11,7 @@ class SetupGerrit(MWUtilModule):
     def get_description(self) -> str:
         return "Sets up a local repository that was cloned from gerrit"
 
-    def populate_subparser(self, parser: ArgumentParser, basedir: MWUtilConfig):
+    def populate_subparser(self, parser: ArgumentParser, config: MWUtilConfig):
         pass
 
     def execute(self, config: MWUtilConfig, args: Namespace):

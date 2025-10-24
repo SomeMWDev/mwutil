@@ -1,5 +1,6 @@
-from argparse import Namespace
+from argparse import Namespace, ArgumentParser
 
+from mwutil.config import MWUtilConfig
 from mwutil.data_state import disable_profile, enable_profile
 from mwutil.exec import run_container_command, run_docker_command
 from mwutil.module import MWUtilModule
@@ -10,7 +11,7 @@ class ElasticSearch(MWUtilModule):
     def get_description(self):
         return "Manage the local elasticsearch installation"
 
-    def populate_subparser(self, parser, config):
+    def populate_subparser(self, parser: ArgumentParser, config: MWUtilConfig):
         # Todo either add more stuff here or convert to argument
         subparsers = parser.add_subparsers(help="The action to perform", dest="action")
 
@@ -18,7 +19,7 @@ class ElasticSearch(MWUtilModule):
         subparsers.add_parser("disable", help="Disable the elasticsearch container")
         subparsers.add_parser("enable", help="Enable the elasticsearch container")
 
-    def execute(self, config, args):
+    def execute(self, config: MWUtilConfig, args: Namespace):
         if args.action == "reset":
             run_container_command(
                 config,
