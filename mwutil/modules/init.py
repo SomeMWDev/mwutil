@@ -213,7 +213,10 @@ class Init(GlobalMWUtilModule):
                         validate=validate,
                     )
 
-            options[option.key] = question.ask()
+            answer = question.ask()
+            if answer is None:
+                exit(1)
+            options[option.key] = answer
             console.clear()
 
         console.clear()
