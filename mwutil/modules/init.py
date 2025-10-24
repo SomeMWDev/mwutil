@@ -48,12 +48,6 @@ class Init(GlobalMWUtilModule):
             help="Offer advanced configuration options",
         )
 
-        parser.add_argument(
-            "project_name",
-            type=str,
-            help="Name of the new MediaWiki project. Can contain only letters, numbers, hyphens and underscores.",
-        )
-
     def execute(self, config: MWUtilConfig | None, args: Namespace):
         debug = os.getenv("MWUTIL_DEBUG")
 
@@ -64,12 +58,12 @@ class Init(GlobalMWUtilModule):
             return
 
         self.check_prerequisites(console, debug)
-        self.validate_project_name(console, args.project_name)
+        project_name = self.get_project_name(console)
 
-        self.clone_mw_dev_kit(console, args.project_name, debug)
-        os.chdir(args.project_name)
+        self.clone_mw_dev_kit(console, project_name, debug)
+        os.chdir(project_name)
 
-        self.configure_env(console, args.project_name, args.advanced, debug)
+        self.configure_env(console, project_name, args.advanced, debug)
         # load env file instead of using the configured values so we can be sure we have all defaults
         dotenv.load_dotenv(os.path.join("config", ".env"))
 
@@ -117,19 +111,24 @@ class Init(GlobalMWUtilModule):
         print_success(console, "All prerequisites met!")
 
     @staticmethod
-    def validate_project_name(console: Console, name: str):
+    def get_project_name(console: Console) -> str:
         project_name_pattern = re.compile(r"^[a-zA-Z0-9_-]+$")
-        if not project_name_pattern.match(name):
-            print_failure(
-                console,
-                "Invalid project name. It can contain only letters, numbers, hyphens and underscores."
-            )
-            exit(1)
 
-        # check if folder exists
-        if os.path.exists(name):
-            print_failure(console, f"The folder '{name}' already exists in the current directory.")
-            exit(1)
+        print_info(console, "The project name will be used as the folder name for your new MediaWiki development environment.")
+        print_info(console, "It can contain only letters, numbers, hyphens and underscores.")
+        while True:
+            name = questionary.text("Enter a name for your new MediaWiki project:").ask()
+            if project_name_pattern.match(name):
+                # check if folder exists
+                if os.path.exists(name):
+                    print_failure(console, f"The folder '{name}' already exists in the current directory.")
+                else:
+                    break
+            else:
+                print_failure(
+                    console,
+                    "Invalid project name. It can contain only letters, numbers, hyphens and underscores."
+                )
 
     @staticmethod
     def clone_mw_dev_kit(console: Console, project_name: str, debug: bool | None):
