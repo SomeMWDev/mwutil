@@ -148,6 +148,8 @@ class Init(GlobalMWUtilModule):
                     if option.validation_pattern:
                         if not re.match(option.validation_pattern, value):
                             print_warning(console, f"Auto-configured value for {option.key} does not match validation pattern!")
+                        if not option.allow_empty and value == "":
+                            print_warning(console, f"Auto-configured value for {option.key} is empty but empty values are not allowed!")
                     options[option.key] = value
                 else:
                     options[option.key] = default
@@ -187,6 +189,7 @@ class Init(GlobalMWUtilModule):
             ) and (
                 not option.validation_pattern or re.match(option.validation_pattern, text)
             )) else "Invalid input." + (f" Must match: {option.validation_pattern}" if option.validation_pattern else "")
+
             if option.confidential:
                 if option.autocomplete:
                     print_warning(console, "Autocomplete is not supported for confidential inputs.")
