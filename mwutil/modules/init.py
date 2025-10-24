@@ -285,31 +285,6 @@ class Init(GlobalMWUtilModule):
             validation_pattern=r"^[a-zA-Z0-9_\-]+$",
             mode=EnvOptionMode.ADVANCED,
         ),
-        # TODO those should be optional
-        EnvOption(
-            "MARIADB_PORT",
-            "The port to expose MariaDB on your host machine",
-            default="3306",
-            validation_pattern=r"^\d{2,5}$",
-        ),
-        EnvOption(
-            "MYSQL_PORT",
-            "The port to expose MySQL on your host machine",
-            default="3307",
-            validation_pattern=r"^\d{2,5}$",
-        ),
-        EnvOption(
-            "ELASTICSEARCH_HTTP_PORT",
-            "The port to expose Elasticsearch via HTTP on your host machine",
-            default="9200",
-            validation_pattern=r"^\d{2,5}$",
-        ),
-        EnvOption(
-            "ELASTICSEARCH_TCP_PORT",
-            "The port to expose Elasticsearch via TCP on your host machine",
-            default="9300",
-            validation_pattern=r"^\d{2,5}$",
-        ),
         EnvOption(
             "MW_SECRET_KEY",
             "The secret key for MediaWiki",
