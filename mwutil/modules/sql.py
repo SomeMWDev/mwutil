@@ -2,8 +2,8 @@ import argparse
 from argparse import Namespace
 from os import getenv
 
+from mwutil.exec import run_root_db_command
 from mwutil.module import MWUtilModule
-from mwutil.utils import run_root_db_command
 
 
 class SQL(MWUtilModule):

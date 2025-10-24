@@ -1,8 +1,9 @@
 import os
 from pathlib import Path
 
+from mwutil.exec import run_wiki_db_command, run_sql_query
 from mwutil.module import MWUtilModule
-from mwutil.utils import LazyChoicesCompleter, run_sql_query, run_wiki_db_command
+from mwutil.utils import LazyChoicesCompleter
 
 
 class Dump(MWUtilModule):

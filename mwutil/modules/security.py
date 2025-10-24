@@ -3,8 +3,8 @@ import re
 from pathlib import Path
 
 from mwutil.constants import SUPPORTED_BRANCHES
+from mwutil.exec import run_command
 from mwutil.module import MWUtilModule
-from mwutil.utils import run_command
 
 class Security(MWUtilModule):
 

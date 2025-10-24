@@ -1,5 +1,5 @@
+from mwutil.exec import run_docker_command
 from mwutil.module import MWUtilModule
-from mwutil.utils import run_docker_command
 
 
 class Up(MWUtilModule):

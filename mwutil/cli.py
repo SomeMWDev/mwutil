@@ -5,8 +5,9 @@ import argcomplete
 import argparse
 import importlib
 
+from mwutil.config import find_mwutil_config, load_mwutil_config
 from mwutil.module import MWUtilModule
-from mwutil.utils import find_mwutil_config, load_mwutil_config, load_core_env
+from mwutil.utils import load_core_env
 
 
 def main():

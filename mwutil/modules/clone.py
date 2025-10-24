@@ -2,8 +2,8 @@ import os
 import re
 from argparse import Namespace
 
+from mwutil.exec import run_command
 from mwutil.module import MWUtilModule
-from mwutil.utils import run_command
 
 
 class Clone(MWUtilModule):
