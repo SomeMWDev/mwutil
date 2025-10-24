@@ -178,38 +178,40 @@ class Init(GlobalMWUtilModule):
 
             console.print(Panel.fit(table, title=f"Configure: [bold green]{option.prompt}[/bold green]", border_style="green"))
 
-            while True:
-                message = f"Enter value for {option.key}"
-                if str(default_value) != "":
-                    message += " (press Enter for default)"
-                message += ":"
-                if option.confidential:
-                    if option.autocomplete:
-                        print_warning(console, "Autocomplete is not supported for confidential inputs.")
-                    answer = questionary.password(
+            message = f"Enter value for {option.key}"
+            if str(default_value) != "":
+                message += " (press Enter for default)"
+            message += ":"
+            validate = lambda text: True if ((
+                option.allow_empty or text != ""
+            ) and (
+                not option.validation_pattern or re.match(option.validation_pattern, text)
+            )) else "Invalid input." + (f" Must match: {option.validation_pattern}" if option.validation_pattern else "")
+            if option.confidential:
+                if option.autocomplete:
+                    print_warning(console, "Autocomplete is not supported for confidential inputs.")
+                answer = questionary.password(
+                    message,
+                    default=default_value,
+                    validate=validate,
+                ).ask()
+            else:
+                if option.autocomplete:
+                    answer = questionary.autocomplete(
                         message,
-                        default=default_value
+                        choices=option.autocomplete,
+                        default=default_value,
+                        validate=validate,
                     ).ask()
                 else:
-                    if option.autocomplete:
-                        answer = questionary.autocomplete(
-                            message,
-                            choices=option.autocomplete,
-                            default=default_value
-                        ).ask()
-                    else:
-                        answer = questionary.text(
-                            message,
-                            default=default_value
-                        ).ask()
+                    answer = questionary.text(
+                        message,
+                        default=default_value,
+                        validate=validate,
+                    ).ask()
 
-                if option.validation_pattern and not re.match(option.validation_pattern, answer):
-                    print_failure(console, f"Invalid input. Must match: {option.validation_pattern}")
-                    continue
-
-                options[option.key] = answer
-                console.clear()
-                break
+            options[option.key] = answer
+            console.clear()
 
         console.clear()
         # overwrite .env with the collected options. Assume keys already exist in .env.example
