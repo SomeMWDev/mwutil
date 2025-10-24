@@ -31,7 +31,9 @@ class EnvOption:
     validation_pattern: str | None = None
     reference: str | None = None
     examples: list[str] | None = None
+    autocomplete: list[str] | None = None
     confidential: bool = False
+    allow_empty: bool = False
 
 class Init(GlobalMWUtilModule):
 
@@ -230,7 +232,8 @@ class Init(GlobalMWUtilModule):
             "MW_BRANCH",
             "Enter the MediaWiki branch to use",
             default="master",
-            examples=["master", "REL1_43", "1.45.0-wmf.24"]
+            examples=["master", "REL1_43", "1.45.0-wmf.24"],
+            autocomplete=constants.SUPPORTED_BRANCHES,
         ),
         # TODO xdebug stuff
         EnvOption(
@@ -364,6 +367,7 @@ class Init(GlobalMWUtilModule):
                 table.add_row("Reference", f"[link={option.reference}]{option.reference}[/link]")
             if option.validation_pattern:
                 table.add_row("Validation", option.validation_pattern)
+            table.add_row("Can be empty", "Yes" if option.allow_empty else "No")
             if option.mode == EnvOptionMode.ADVANCED:
                 table.add_row("Mode", "Advanced")
 
@@ -375,15 +379,24 @@ class Init(GlobalMWUtilModule):
                     message += " (press Enter for default)"
                 message += ":"
                 if option.confidential:
+                    if option.autocomplete:
+                        print_warning(console, "Autocomplete is not supported for confidential inputs.")
                     answer = questionary.password(
                         message,
                         default=default_value
                     ).ask()
                 else:
-                    answer = questionary.text(
-                        message,
-                        default=default_value
-                    ).ask()
+                    if option.autocomplete:
+                        answer = questionary.autocomplete(
+                            message,
+                            choices=option.autocomplete,
+                            default=default_value
+                        ).ask()
+                    else:
+                        answer = questionary.text(
+                            message,
+                            default=default_value
+                        ).ask()
 
                 if option.validation_pattern and not re.match(option.validation_pattern, answer):
                     print_failure(console, f"Invalid input. Must match: {option.validation_pattern}")
