@@ -8,6 +8,8 @@ from typing import Callable
 import dotenv
 import questionary
 from rich.console import Console
+from rich.panel import Panel
+from rich.table import Table
 
 from mwutil.local_config import MWUtilConfig
 from mwutil.module import GlobalMWUtilModule
@@ -161,6 +163,8 @@ class Init(GlobalMWUtilModule):
             run_command(console, ["cp", "config/.env.example", "config/.env"], debug)
         print_success(console, "Copied .env.example to .env.")
 
+        console.clear()
+
         options = {}
         for option in Init.ENV_OPTIONS:
             if option.advanced and not advanced:
@@ -179,18 +183,33 @@ class Init(GlobalMWUtilModule):
             elif option.default is not None:
                 default_value = option.default
 
+            table = Table.grid(padding=(0, 2))
+            table.add_column("Field", style="bold cyan", no_wrap=True)
+            table.add_column("Value", style="white")
+
+            table.add_row("Key", option.key)
+            table.add_row("Default", str(default_value))
+            if option.reference:
+                table.add_row("Reference", f"[link={option.reference}]{option.reference}[/link]")
+            if option.validation_pattern:
+                table.add_row("Validation", option.validation_pattern)
+            if option.advanced:
+                table.add_row("Mode", "Advanced")
+
+            console.print(Panel.fit(table, title=f"Configure: [bold green]{option.prompt}[/bold green]", border_style="green"))
+
             while True:
                 answer = questionary.text(
-                    option.prompt + (f" (Reference: {option.reference})" if option.reference else "") + ":",
+                    f"Enter value for {option.key} (press Enter for default):",
                     default=default_value
                 ).ask()
 
-                if option.validation_pattern:
-                    if not re.match(option.validation_pattern, answer):
-                        print_failure(console, f"Invalid input. Please ensure it matches the pattern: {option.validation_pattern}")
-                        continue
+                if option.validation_pattern and not re.match(option.validation_pattern, answer):
+                    print_failure(console, f"Invalid input. Must match: {option.validation_pattern}")
+                    continue
 
                 options[option.key] = answer
+                console.clear()
                 break
 
         # overwrite .env with the collected options. Assume keys already exist in .env.example
@@ -198,6 +217,7 @@ class Init(GlobalMWUtilModule):
             for key, value in options.items():
                 env_file = os.path.join("config", ".env")
                 dotenv.set_key(env_file, key, value)
+
         print_success(console, "Successfully configured .env file.")
 
 def print_success(console: Console, message: str):
