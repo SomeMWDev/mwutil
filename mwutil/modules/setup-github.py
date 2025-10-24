@@ -1,7 +1,7 @@
 import os
 from argparse import ArgumentParser, Namespace
 
-from mwutil.config import MWUtilConfig
+from mwutil.local_config import MWUtilConfig
 from mwutil.exec import set_git_config
 from mwutil.module import MWUtilModule
 

@@ -1,7 +1,7 @@
 import os
 from argparse import Namespace, ArgumentParser
 
-from mwutil.config import MWUtilConfig
+from mwutil.local_config import MWUtilConfig
 from mwutil.exec import run_sql_query, run_container_command
 from mwutil.module import MWUtilModule
 

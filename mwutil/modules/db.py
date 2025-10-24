@@ -2,7 +2,7 @@ import time
 import uuid
 from argparse import Namespace, ArgumentParser
 
-from mwutil.config import MWUtilConfig
+from mwutil.local_config import MWUtilConfig
 from mwutil.data_state import disable_profile, enable_profile
 from mwutil.module import MWUtilModule
 from mwutil.utils import set_env_key

@@ -1,6 +1,6 @@
 from argparse import Namespace, ArgumentParser
 
-from mwutil.config import MWUtilConfig
+from mwutil.local_config import MWUtilConfig
 from mwutil.module import MWUtilModule
 
 class Update(MWUtilModule):

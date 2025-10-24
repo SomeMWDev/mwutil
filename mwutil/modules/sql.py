@@ -2,7 +2,7 @@ import argparse
 from argparse import Namespace, ArgumentParser
 from os import getenv
 
-from mwutil.config import MWUtilConfig
+from mwutil.local_config import MWUtilConfig
 from mwutil.exec import run_root_db_command
 from mwutil.module import MWUtilModule
 
