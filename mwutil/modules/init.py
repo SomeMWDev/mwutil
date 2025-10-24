@@ -175,12 +175,14 @@ class Init(GlobalMWUtilModule):
             "MW_LANG",
             "Enter the default language code for MediaWiki",
             default="en",
+            mode=EnvOptionMode.ADVANCED,
             reference="https://www.mediawiki.org/wiki/Manual:$wgLanguageCode",
         ),
         EnvOption(
             "MW_SITENAME",
             "Enter the site name for MediaWiki",
             default=lambda options, project_name: f"{project_name.capitalize()} Wiki",
+            mode=EnvOptionMode.ADVANCED,
             reference="https://www.mediawiki.org/wiki/Manual:$wgSitename",
         ),
         EnvOption(
@@ -195,6 +197,7 @@ class Init(GlobalMWUtilModule):
             "MEDIAWIKI_USER",
             "Enter the username for the default MediaWiki admin account",
             default="Admin",
+            mode=EnvOptionMode.ADVANCED,
             validation_pattern=constants.LEGAL_TITLE_REGEX,
         ),
         EnvOption(
@@ -222,6 +225,7 @@ class Init(GlobalMWUtilModule):
             default=lambda options, project_name: options["MW_INSTALL_PATH"] + "/cache/composer",
             mode=EnvOptionMode.AUTOMATIC,
         ),
+        # TODO select with optional string input?
         EnvOption(
             "MW_BRANCH",
             "Enter the MediaWiki branch to use",
