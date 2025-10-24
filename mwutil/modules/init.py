@@ -127,6 +127,9 @@ class Init(GlobalMWUtilModule):
             repo_url = "git@github.com:SomeMWDev/mw-dev-kit.git"
         else:
             repo_url = questionary.text("Enter the custom repository URL:").ask()
+        if repo_url is None or repo_url.strip() == "":
+            print_failure(console, "No repository URL provided. Exiting.")
+            exit(1)
         with console.status("Cloning mw-dev-kit...", spinner="dots"):
             run_command(console, ["git", "clone", repo_url, project_name], debug)
         print_success(console, f"Successfully cloned mw-dev-kit into '{project_name}'.")
