@@ -132,3 +132,16 @@ def set_git_config(option: str, value: str, folder: Path | None = None) -> Compl
     The folder this is run in must contain a git repository.
     """
     return run_command(["git", "config", "--local", option, value], folder)
+
+def get_git_option(option: str) -> str | None:
+    try:
+        result = subprocess.run(
+            ["git", "config", "--get", option],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=True,
+            text=True,
+        )
+        return result.stdout.strip()
+    except subprocess.CalledProcessError:
+        return None
