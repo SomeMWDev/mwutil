@@ -3,6 +3,7 @@ import re
 import subprocess
 from argparse import ArgumentParser, Namespace
 from dataclasses import dataclass
+from enum import Enum
 from typing import Callable
 
 import dotenv
@@ -11,17 +12,26 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
+from mwutil import constants
 from mwutil.local_config import MWUtilConfig
 from mwutil.module import GlobalMWUtilModule
+
+
+class EnvOptionMode(Enum):
+    BASIC = 1
+    ADVANCED = 2
+    AUTOMATIC = 3
 
 @dataclass
 class EnvOption:
     key: str
     prompt: str
     default: str | Callable[[dict[str, str], str], str] | None = None
-    advanced: bool = False
+    mode: EnvOptionMode = EnvOptionMode.BASIC
     validation_pattern: str | None = None
     reference: str | None = None
+    examples: list[str] | None = None
+    confidential: bool = False
 
 class Init(GlobalMWUtilModule):
 
@@ -129,12 +139,13 @@ class Init(GlobalMWUtilModule):
         print_success(console, f"Successfully cloned mw-dev-kit into '{project_name}'.")
 
     ENV_OPTIONS = [
+        # TODO consider select thingy here
         EnvOption(
             "MW_SCRIPT_PATH",
             "Enter the script path for MediaWiki",
             default="/w",
-            advanced=True,
-            reference="https://www.mediawiki.org/wiki/Manual:$wgScriptPath"
+            mode=EnvOptionMode.ADVANCED,
+            reference="https://www.mediawiki.org/wiki/Manual:$wgScriptPath",
         ),
         EnvOption(
             "MW_DOCKER_PORT",
@@ -146,15 +157,174 @@ class Init(GlobalMWUtilModule):
             "MW_SERVER",
             "Enter the server name for MediaWiki",
             default=lambda options, project_name: f"http://localhost:{options['MW_DOCKER_PORT']}",
-            advanced=True,
-            reference="https://www.mediawiki.org/wiki/Manual:$wgServer"
+            mode=EnvOptionMode.ADVANCED,
+            reference="https://www.mediawiki.org/wiki/Manual:$wgServer",
         ),
         EnvOption(
             "MW_LANG",
             "Enter the default language code for MediaWiki",
             default="en",
-            reference="https://www.mediawiki.org/wiki/Manual:$wgLanguageCode"
-        )
+            reference="https://www.mediawiki.org/wiki/Manual:$wgLanguageCode",
+        ),
+        EnvOption(
+            "MW_SITENAME",
+            "Enter the site name for MediaWiki",
+            default=lambda options, project_name: f"{project_name.capitalize()} Wiki",
+            reference="https://www.mediawiki.org/wiki/Manual:$wgSitename",
+        ),
+        EnvOption(
+            "MW_META_NAMESPACE",
+            "Enter the meta namespace name for MediaWiki",
+            default=lambda options, project_name: options["MW_SITENAME"].replace(" ", "_"),
+            mode=EnvOptionMode.ADVANCED,
+            reference="https://www.mediawiki.org/wiki/Manual:$wgMetaNamespace",
+            validation_pattern=r"^[^ ]+$",
+        ),
+        EnvOption(
+            "MEDIAWIKI_USER",
+            "Enter the username for the default MediaWiki admin account",
+            default="Admin",
+            validation_pattern=constants.LEGAL_TITLE_REGEX,
+        ),
+        EnvOption(
+            "MEDIAWIKI_PASSWORD",
+            "Enter the password for the default MediaWiki admin account",
+            confidential=True,
+            validation_pattern=r"^.{4,}$",
+        ),
+        EnvOption(
+            "MW_INSTALL_PATH",
+            "Enter the installation path for MediaWiki inside the container",
+            default="/var/www/html/w",
+            mode=EnvOptionMode.ADVANCED,
+            reference="https://www.mediawiki.org/wiki/Manual:$wgInstallPath",
+        ),
+        EnvOption(
+            "MW_LOG_DIR",
+            "",
+            default=lambda options, project_name: options["MW_INSTALL_PATH"] + "/cache",
+            mode=EnvOptionMode.AUTOMATIC,
+        ),
+        EnvOption(
+            "COMPOSER_CACHE_DIR",
+            "",
+            default=lambda options, project_name: options["MW_INSTALL_PATH"] + "/cache/composer",
+            mode=EnvOptionMode.AUTOMATIC,
+        ),
+        EnvOption(
+            "MW_BRANCH",
+            "Enter the MediaWiki branch to use",
+            default="master",
+            examples=["master", "REL1_43", "1.45.0-wmf.24"]
+        ),
+        # TODO xdebug stuff
+        EnvOption(
+            "DOCKER_COMPOSE_PROJECT_NAME",
+            "",
+            default=lambda options, project_name: project_name.lower(),
+            mode=EnvOptionMode.AUTOMATIC,
+        ),
+        # TODO use select here
+        EnvOption(
+            "MWC_DB_TYPE",
+            "The type of database to use",
+            default="mariadb",
+            examples=["mariadb", "mysql"],
+            mode=EnvOptionMode.ADVANCED,
+            validation_pattern="^(mariadb|mysql)$",
+        ),
+        EnvOption(
+            "MWC_DB_HOST",
+            "",
+            default=lambda options, project_name: options["MWC_DB_TYPE"],
+            mode=EnvOptionMode.AUTOMATIC,
+        ),
+        EnvOption(
+            "MWC_DB_ROOT_PASSWORD",
+            "The root password for the database",
+            confidential=True,
+            validation_pattern=r"^.{4,}$",
+        ),
+        EnvOption(
+            "MWC_DB_USER",
+            "The username for the MediaWiki database user",
+            default="mwuser",
+            # TODO is this validation correct?
+            validation_pattern=r"^[a-zA-Z0-9_]+$",
+            mode=EnvOptionMode.ADVANCED,
+        ),
+        EnvOption(
+            "MWC_DB_PASSWORD",
+            "The password for the MediaWiki database user",
+            confidential=True,
+            validation_pattern=r"^.{4,}$",
+        ),
+        EnvOption(
+            "MWC_DB_DATABASE",
+            "The name of the MediaWiki database",
+            default=lambda options, project_name: project_name.lower(),
+            validation_pattern=r"^[a-zA-Z0-9_\-]+$",
+            mode=EnvOptionMode.ADVANCED,
+        ),
+        # TODO those should be optional
+        EnvOption(
+            "MARIADB_PORT",
+            "The port to expose MariaDB on your host machine",
+            default="3306",
+            validation_pattern=r"^\d{2,5}$",
+        ),
+        EnvOption(
+            "MYSQL_PORT",
+            "The port to expose MySQL on your host machine",
+            default="3307",
+            validation_pattern=r"^\d{2,5}$",
+        ),
+        EnvOption(
+            "ELASTICSEARCH_HTTP_PORT",
+            "The port to expose Elasticsearch via HTTP on your host machine",
+            default="9200",
+            validation_pattern=r"^\d{2,5}$",
+        ),
+        EnvOption(
+            "ELASTICSEARCH_TCP_PORT",
+            "The port to expose Elasticsearch via TCP on your host machine",
+            default="9300",
+            validation_pattern=r"^\d{2,5}$",
+        ),
+        EnvOption(
+            "MW_SECRET_KEY",
+            "The secret key for MediaWiki",
+            default=lambda options, project_name: os.urandom(32).hex(),
+            mode=EnvOptionMode.ADVANCED,
+            reference="https://www.mediawiki.org/wiki/Manual:$wgSecretKey",
+            confidential=True,
+        ),
+        EnvOption(
+            "MW_UPGRADE_KEY",
+            "The upgrade key for MediaWiki",
+            default=lambda options, project_name: os.urandom(16).hex(),
+            mode=EnvOptionMode.ADVANCED,
+            reference="https://www.mediawiki.org/wiki/Manual:$wgUpgradeKey",
+            confidential=True,
+        ),
+        EnvOption(
+            "GIT_USERNAME",
+            "Enter your Git username you generally use",
+            examples=["YourUsername"],
+        ),
+        EnvOption(
+            "GIT_EMAIL",
+            "Enter your Git email you generally use",
+            validation_pattern=r"^[^@]+@[^@]+\.[^@]+$",
+            examples=["my@example.email"],
+        ),
+        # TODO SECURITY_PATCH_FOLDER could be questioned in security.py?
+        EnvOption(
+            "GERRIT_USERNAME",
+            "Enter your Gerrit username used to clone repositories via SSH",
+            examples=["YourGerritUsername"],
+        ),
+        # TODO GERRIT_SSH_KEY could be questioned somewhere else?
     ]
 
     @staticmethod
@@ -167,12 +337,16 @@ class Init(GlobalMWUtilModule):
 
         options = {}
         for option in Init.ENV_OPTIONS:
-            if option.advanced and not advanced:
+            if (option.mode == EnvOptionMode.ADVANCED and not advanced) or option.mode == EnvOptionMode.AUTOMATIC:
                 default = option.default
                 if default is None:
                     raise ValueError(f"No default value for non-interactive option {option.key}")
                 elif callable(default):
-                    options[option.key] = default(options, project_name)
+                    value = default(options, project_name)
+                    if option.validation_pattern:
+                        if not re.match(option.validation_pattern, value):
+                            print_warning(console, f"Auto-configured value for {option.key} does not match validation pattern!")
+                    options[option.key] = value
                 else:
                     options[option.key] = default
                 continue
@@ -188,21 +362,34 @@ class Init(GlobalMWUtilModule):
             table.add_column("Value", style="white")
 
             table.add_row("Key", option.key)
-            table.add_row("Default", str(default_value))
+            if str(default_value) != "":
+                table.add_row("Default", str(default_value))
+            if option.examples:
+                table.add_row("Examples", ", ".join(option.examples))
             if option.reference:
                 table.add_row("Reference", f"[link={option.reference}]{option.reference}[/link]")
             if option.validation_pattern:
                 table.add_row("Validation", option.validation_pattern)
-            if option.advanced:
+            if option.mode == EnvOptionMode.ADVANCED:
                 table.add_row("Mode", "Advanced")
 
             console.print(Panel.fit(table, title=f"Configure: [bold green]{option.prompt}[/bold green]", border_style="green"))
 
             while True:
-                answer = questionary.text(
-                    f"Enter value for {option.key} (press Enter for default):",
-                    default=default_value
-                ).ask()
+                message = f"Enter value for {option.key}"
+                if str(default_value) != "":
+                    message += " (press Enter for default)"
+                message += ":"
+                if option.confidential:
+                    answer = questionary.password(
+                        message,
+                        default=default_value
+                    ).ask()
+                else:
+                    answer = questionary.text(
+                        message,
+                        default=default_value
+                    ).ask()
 
                 if option.validation_pattern and not re.match(option.validation_pattern, answer):
                     print_failure(console, f"Invalid input. Must match: {option.validation_pattern}")
@@ -226,6 +413,9 @@ def print_success(console: Console, message: str):
 def print_failure(console: Console, message: str):
     console.print(f"[bold red]✖ {message}")
 
+def print_warning(console: Console, message: str):
+    console.print(f"[bold yellow]⚠ {message}")
+
 def print_normal(console: Console, message: str):
     console.print(f"[white]{message}")
 
@@ -233,7 +423,7 @@ def print_info(console: Console, message: str):
     console.print(f"[bold blue]ℹ {message}")
 
 def print_detail(console: Console, message: str):
-    console.print(f"[bright_black]{message}")
+    console.print(f"[bright black]{message}")
 
 def run_command(console: Console, command: list[str], debug: bool | None):
     # if debug is enabled, print the command being run
