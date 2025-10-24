@@ -11,7 +11,7 @@ class MWUtilModule(ABC):
         pass
 
     @abstractmethod
-    def populate_subparser(self, parser: ArgumentParser, basedir: MWUtilConfig):
+    def populate_subparser(self, parser: ArgumentParser, config: MWUtilConfig):
         pass
 
     @abstractmethod
