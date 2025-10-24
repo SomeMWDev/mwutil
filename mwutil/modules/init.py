@@ -5,6 +5,7 @@ from argparse import ArgumentParser, Namespace
 
 import dotenv
 import questionary
+from questionary import Separator
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
@@ -116,6 +117,7 @@ class Init(GlobalMWUtilModule):
             choices=[
                 "Clone via HTTPS",
                 "Clone via SSH",
+                Separator(),
                 "Custom Origin"
             ],
         ).ask()
