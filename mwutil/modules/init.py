@@ -123,7 +123,7 @@ class Init(GlobalMWUtilModule):
                 if os.path.exists(name):
                     print_failure(console, f"The folder '{name}' already exists in the current directory.")
                 else:
-                    break
+                    return name
             else:
                 print_failure(
                     console,
