@@ -9,6 +9,7 @@ from questionary import Separator
 from rich.console import Console
 from rich.panel import Panel
 from rich.progress import Progress
+from rich.prompt import Prompt, Confirm
 from rich.table import Table
 
 from mwutil.env import EnvOptionMode, ENV_OPTIONS, EnvOption
@@ -98,7 +99,7 @@ class Init(GlobalMWUtilModule):
         print_info(console, "The project name will be used as the folder name for your new MediaWiki development environment.")
         print_info(console, "It can contain only letters, numbers, hyphens and underscores.")
         while True:
-            name = questionary.text("Enter a name for your new MediaWiki project:").ask()
+            name = Prompt.ask("Enter a name for your new MediaWiki project")
             if project_name_pattern.match(name):
                 # check if folder exists
                 if os.path.exists(name):
@@ -113,6 +114,7 @@ class Init(GlobalMWUtilModule):
 
     @staticmethod
     def clone_mw_dev_kit(console: Console, project_name: str, debug: bool | None):
+        # TODO replace questionary here with rich prompts
         method = questionary.select(
             "Choose a method to clone the Dev Kit",
             choices=[
@@ -127,7 +129,7 @@ class Init(GlobalMWUtilModule):
         elif method == "Clone via SSH":
             repo_url = "git@github.com:SomeMWDev/mw-dev-kit.git"
         else:
-            repo_url = questionary.text("Enter the custom repository URL:").ask()
+            repo_url = Prompt.ask("Enter the custom repository URL")
         if repo_url is None or repo_url.strip() == "":
             print_failure(console, "No repository URL provided. Exiting.")
             exit(1)
@@ -201,42 +203,29 @@ class Init(GlobalMWUtilModule):
                 )
             console.print(Panel.fit(table, title=f"Configure: [bold green]{option.prompt}[/bold green]", border_style="green"))
 
-            message = f"Enter value for {option.key}"
-            if str(default_value) != "":
-                message += " (press Enter for default)"
-            message += ":"
-            validate = lambda text: True if ((
-                option.allow_empty or text != ""
-            ) and (
-                not option.validation_pattern or re.match(option.validation_pattern, text)
-            )) else "Invalid input." + (f" Must match: {option.validation_pattern}" if option.validation_pattern else "")
+            def validate(answer_value: str | None, is_first: bool = False) -> bool:
+                if answer_value is None:
+                    if not is_first:
+                        print_failure(console, "Invalid input!")
+                    return False
+                if not option.allow_empty and answer_value == "":
+                    print_failure(console, "This value cannot be empty.")
+                    return False
+                if option.validation_pattern and not re.match(option.validation_pattern, answer_value):
+                    print_failure(console, f"Invalid format. Must match: {option.validation_pattern}")
+                    return False
+                return True
 
-            if option.confidential:
-                if option.autocomplete:
-                    print_warning(console, "Autocomplete is not supported for confidential inputs.")
-                question = questionary.password(
-                    message,
-                    default=default_value,
-                    validate=validate,
+            answer = None
+            first = True
+            while not validate(answer, first):
+                answer = Prompt.ask(
+                    f"Enter value for {option.key}",
+                    console=console,
+                    default=default_value if not option.confidential else None,
+                    password=option.confidential,
                 )
-            else:
-                if option.autocomplete:
-                    question = questionary.autocomplete(
-                        message,
-                        choices=option.autocomplete,
-                        default=default_value,
-                        validate=validate,
-                    )
-                else:
-                    question = questionary.text(
-                        message,
-                        default=default_value,
-                        validate=validate,
-                    )
-
-            answer = question.ask()
-            if answer is None:
-                exit(1)
+                first = False
             answered_questions += 1
             options[option.key] = answer
             console.clear()
@@ -313,10 +302,10 @@ class Init(GlobalMWUtilModule):
             run_command(console, ["mwutil", "setup-gerrit"], debug, "core")
         print_success(console, "git-review setup completed.")
 
-        clone_vector = questionary.confirm(
+        clone_vector = Confirm.ask(
             "Do you want to clone the Vector skin?",
             default=True,
-        ).ask()
+        )
         if clone_vector:
             with console.status("Cloning Vector skin into skins/ folder...", spinner="dots"):
                 run_command(console, ["mwutil", "clone", "skin", "gerrit", "Vector"], debug)
