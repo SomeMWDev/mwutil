@@ -21,7 +21,6 @@ class EnvOption:
     validation_pattern: str | None = None
     reference: str | None = None
     examples: list[str] | None = None
-    autocomplete: list[str] | None = None
     confidential: bool = False
     allow_empty: bool = False
 
@@ -107,7 +106,6 @@ ENV_OPTIONS = [
             "Enter the MediaWiki branch to use",
             default="master",
             examples=["master", "REL1_43", "1.45.0-wmf.24"],
-            autocomplete=constants.SUPPORTED_BRANCHES,
         ),
         # TODO xdebug stuff
         EnvOption(
