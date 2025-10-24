@@ -193,27 +193,27 @@ class Init(GlobalMWUtilModule):
             if option.confidential:
                 if option.autocomplete:
                     print_warning(console, "Autocomplete is not supported for confidential inputs.")
-                answer = questionary.password(
+                question = questionary.password(
                     message,
                     default=default_value,
                     validate=validate,
-                ).ask()
+                )
             else:
                 if option.autocomplete:
-                    answer = questionary.autocomplete(
+                    question = questionary.autocomplete(
                         message,
                         choices=option.autocomplete,
                         default=default_value,
                         validate=validate,
-                    ).ask()
+                    )
                 else:
-                    answer = questionary.text(
+                    question = questionary.text(
                         message,
                         default=default_value,
                         validate=validate,
-                    ).ask()
+                    )
 
-            options[option.key] = answer
+            options[option.key] = question.ask()
             console.clear()
 
         console.clear()
