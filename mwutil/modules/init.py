@@ -254,6 +254,8 @@ class Init(GlobalMWUtilModule):
             "MWC_DB_ROOT_PASSWORD",
             "The root password for the database",
             confidential=True,
+            default=lambda options, project_name: os.urandom(16).hex(),
+            mode=EnvOptionMode.ADVANCED,
             validation_pattern=r"^.{4,}$",
         ),
         EnvOption(
@@ -268,6 +270,8 @@ class Init(GlobalMWUtilModule):
             "MWC_DB_PASSWORD",
             "The password for the MediaWiki database user",
             confidential=True,
+            default=lambda options, project_name: os.urandom(16).hex(),
+            mode=EnvOptionMode.ADVANCED,
             validation_pattern=r"^.{4,}$",
         ),
         EnvOption(
