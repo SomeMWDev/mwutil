@@ -6,14 +6,15 @@ from pathlib import Path
 from mwutil.local_config import MWUtilConfig
 from mwutil.constants import SUPPORTED_BRANCHES
 from mwutil.exec import run_command
-from mwutil.module import MWUtilModule
+from mwutil.module import GlobalMWUtilModule
 
-class Security(MWUtilModule):
+
+class Security(GlobalMWUtilModule):
 
     def get_description(self):
         return "Create and push security patches"
 
-    def populate_subparser(self, parser: ArgumentParser, config: MWUtilConfig):
+    def populate_subparser(self, parser: ArgumentParser, config: MWUtilConfig | None):
         subparsers = parser.add_subparsers(help="The action to perform", dest="action")
 
         create_patch_parser = subparsers.add_parser("create-patch")
@@ -33,7 +34,7 @@ class Security(MWUtilModule):
 
         subparsers.add_parser("push-all")
 
-    def execute(self, config: MWUtilConfig, args: Namespace):
+    def execute(self, config: MWUtilConfig | None, args: Namespace):
         if args.action == "create-patch":
             security_patch_dir = Path(os.getenv("SECURITY_PATCH_FOLDER"))
             if not security_patch_dir.exists():

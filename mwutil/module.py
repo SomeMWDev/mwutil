@@ -17,3 +17,13 @@ class MWUtilModule(ABC):
     @abstractmethod
     def execute(self, config: MWUtilConfig, args: Namespace):
         pass
+
+class GlobalMWUtilModule(MWUtilModule):
+
+    @abstractmethod
+    def populate_subparser(self, parser: ArgumentParser, config: MWUtilConfig | None):
+        pass
+
+    @abstractmethod
+    def execute(self, config: MWUtilConfig | None, args: Namespace):
+        pass
