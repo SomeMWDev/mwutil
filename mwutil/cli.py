@@ -30,14 +30,13 @@ MODULE_NAMES = [
     "recreate",
     "reset",
     "run",
-    "security",
     "setup-gerrit",
     "setup-github",
     "shell",
     "sql",
     "up",
     "update"
-]
+] + GLOBAL_MODULE_NAMES
 
 def main():
     parser = argparse.ArgumentParser(description="Manage MediaWiki development environments")
