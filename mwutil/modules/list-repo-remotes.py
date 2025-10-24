@@ -1,7 +1,7 @@
 from collections import OrderedDict
 
+from mwutil.exec import run_command
 from mwutil.module import MWUtilModule
-from mwutil.utils import run_command
 
 
 class ListRepoRemotes(MWUtilModule):

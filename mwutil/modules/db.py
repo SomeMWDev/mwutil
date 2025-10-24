@@ -2,8 +2,9 @@ import time
 import uuid
 from argparse import Namespace
 
+from mwutil.data_state import disable_profile, enable_profile
 from mwutil.module import MWUtilModule
-from mwutil.utils import disable_profile, enable_profile, set_env_key
+from mwutil.utils import set_env_key
 
 
 class DB(MWUtilModule):

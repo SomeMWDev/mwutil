@@ -1,8 +1,9 @@
 import os
 from argparse import ArgumentParser, Namespace
 
+from mwutil.config import MWUtilConfig
+from mwutil.exec import run_command, set_git_config
 from mwutil.module import MWUtilModule
-from mwutil.utils import MWUtilConfig, run_command, set_git_config
 
 
 class SetupGerrit(MWUtilModule):

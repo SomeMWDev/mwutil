@@ -1,8 +1,9 @@
 import os
 from argparse import ArgumentParser, Namespace
 
+from mwutil.config import MWUtilConfig
+from mwutil.exec import set_git_config
 from mwutil.module import MWUtilModule
-from mwutil.utils import MWUtilConfig, set_git_config
 
 
 class SetupGithub(MWUtilModule):

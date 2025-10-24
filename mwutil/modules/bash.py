@@ -1,7 +1,8 @@
 import argparse
 
+from mwutil.exec import run_container_command, run_docker_command
 from mwutil.module import MWUtilModule
-from mwutil.utils import run_container_command, run_docker_command, LazyChoicesCompleter
+from mwutil.utils import LazyChoicesCompleter
 
 
 class Bash(MWUtilModule):

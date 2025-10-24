@@ -1,9 +1,9 @@
 import os
 from argparse import ArgumentParser, Namespace
 
+from mwutil.config import MWUtilConfig
+from mwutil.exec import run_command
 from mwutil.module import MWUtilModule
-from mwutil.utils import MWUtilConfig, run_command
-
 
 class AddGerritSSHKey(MWUtilModule):
 

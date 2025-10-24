@@ -1,8 +1,8 @@
 import os
 from argparse import Namespace
 
+from mwutil.exec import run_sql_query, run_container_command
 from mwutil.module import MWUtilModule
-from mwutil.utils import run_sql_query, run_container_command
 
 
 class Reset(MWUtilModule):

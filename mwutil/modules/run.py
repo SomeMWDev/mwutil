@@ -1,8 +1,9 @@
 import argparse
 from pathlib import Path
 
+from mwutil.exec import run_container_command
 from mwutil.module import MWUtilModule
-from mwutil.utils import run_container_command, LazyChoicesCompleter, get_core_version
+from mwutil.utils import LazyChoicesCompleter, get_core_version
 
 
 def _get_scripts(config):

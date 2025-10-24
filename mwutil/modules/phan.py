@@ -1,8 +1,8 @@
 from argparse import Namespace
 from subprocess import CompletedProcess
 
+from mwutil.exec import run_container_command
 from mwutil.module import MWUtilModule
-from mwutil.utils import run_container_command
 
 
 # TODO consider unifying some of this code with lint.py
