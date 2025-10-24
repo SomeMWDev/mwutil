@@ -31,27 +31,28 @@ class Reset(MWUtilModule):
         tmp_settings = config.coredir / "LocalSettings.temp.php"
         local_settings.rename(tmp_settings)
 
-        # Run the installer
-        # TODO move all envs to config
-        user = os.getenv("MWC_DB_USER")
-        password = os.getenv("MWC_DB_PASSWORD")
-        database = os.getenv("MWC_DB_DATABASE")
-        dbhost = os.getenv("MWC_DB_HOST")
-        config.modules["run"].execute(config, Namespace(script="install", extra_args=[
-            f"--dbname={database}",
-            f"--dbuser={user}",
-            f"--dbpass={password}",
-            f"--dbserver={dbhost}",
-            f"--server={os.getenv("MW_SERVER")}",
-            f"--scriptpath={os.getenv("MW_SCRIPT_PATH")}",
-            f"--lang={os.getenv("MW_LANG")}",
-            f"--pass={os.getenv("MEDIAWIKI_PASSWORD")}",
-            "mediawiki",
-            os.getenv("MEDIAWIKI_USER")
-        ]))
-
-        # Move LocalSettings.php back
-        tmp_settings.rename(local_settings)
+        try:
+            # Run the installer
+            # TODO move all envs to config
+            user = os.getenv("MWC_DB_USER")
+            password = os.getenv("MWC_DB_PASSWORD")
+            database = os.getenv("MWC_DB_DATABASE")
+            dbhost = os.getenv("MWC_DB_HOST")
+            config.modules["run"].execute(config, Namespace(script="install", extra_args=[
+                f"--dbname={database}",
+                f"--dbuser={user}",
+                f"--dbpass={password}",
+                f"--dbserver={dbhost}",
+                f"--server={os.getenv("MW_SERVER")}",
+                f"--scriptpath={os.getenv("MW_SCRIPT_PATH")}",
+                f"--lang={os.getenv("MW_LANG")}",
+                f"--pass={os.getenv("MEDIAWIKI_PASSWORD")}",
+                "mediawiki",
+                os.getenv("MEDIAWIKI_USER")
+            ]))
+        finally:
+            # Move LocalSettings.php back
+            tmp_settings.rename(local_settings)
 
         print("Running update.php...")
         config.modules["update"].execute(config, Namespace())
