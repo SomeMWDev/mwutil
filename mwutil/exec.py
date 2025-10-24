@@ -1,4 +1,5 @@
 import os
+import shlex
 import subprocess
 from pathlib import Path
 from subprocess import CompletedProcess
@@ -31,7 +32,7 @@ def run_container_command(
 ) -> CompletedProcess:
     if command[0] != "bash":
         # avoid "OCI runtime exec failed: exec failed: unable to start container process: ..."
-        command = ["bash", "-c"] + [" ".join(command)]
+        command = ["bash", "-c"] + [shlex.join(command)]
     if workdir and not workdir.startswith("/"):
         # resolve relative paths against the MW installation directory
         workdir = config.mw_install_path + "/" + workdir
@@ -122,7 +123,7 @@ def run_sql_query(
         [
             "-e",
             # single quotes around the query so backticks don't get interpreted by the shell
-            f"'{query}'"
+            shlex.quote(query)
         ]
     )
 
