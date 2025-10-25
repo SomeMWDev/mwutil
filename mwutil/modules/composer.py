@@ -29,5 +29,5 @@ class Composer(MWUtilModule):
 
     def execute(self, config: MWUtilConfig, args: Namespace):
         run_container_command(config, [
-            "composer update " + " ".join(args.extra_args)
+            "composer", "update" + " ".join(args.extra_args)
         ], workdir=args.folder)
