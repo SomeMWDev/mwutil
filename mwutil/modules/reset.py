@@ -15,6 +15,9 @@ class Reset(MWUtilModule):
         pass
 
     def execute(self, config: MWUtilConfig, args: Namespace):
+        print("Making sure containers are up...")
+        config.modules["up"].execute(config, Namespace())
+
         print("Deleting uploads...")
         run_container_command(
             config,
