@@ -23,7 +23,7 @@ class Lint(MWUtilModule):
     def execute(self, config: MWUtilConfig, args: Namespace):
         def run_lint_command() -> CompletedProcess:
             return run_container_command(config, [
-                "composer run test"
+                "composer", "run", "test"
             ], workdir=args.folder)
 
         result = run_lint_command()

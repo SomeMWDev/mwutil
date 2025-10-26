@@ -23,7 +23,7 @@ class Phan(MWUtilModule):
 
     def execute(self, config: MWUtilConfig, args: Namespace):
         def run_phan_command() -> CompletedProcess:
-            return run_container_command(config, ["vendor/bin/phan -d . --long-progress-bar"], workdir=args.folder)
+            return run_container_command(config, ["vendor/bin/phan", "-d", ".", "--long-progress-bar"], workdir=args.folder)
 
         result = run_phan_command()
         if result.returncode == 127:
