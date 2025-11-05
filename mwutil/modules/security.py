@@ -37,10 +37,11 @@ class Security(GlobalMWUtilModule):
     def execute(self, config: MWUtilConfig | None, args: Namespace):
         if args.action == "create-patch":
             # TODO global setting for this or default to some standard location?
-            if os.getenv("SECURITY_PATCH_DIR").strip() == "":
-                print("ERROR: SECURITY_PATCH_DIR environment variable is not set.")
+            folder = os.getenv("SECURITY_PATCH_FOLDER")
+            if folder is None or folder.strip() == "":
+                print("ERROR: SECURITY_PATCH_FOLDER environment variable is not set.")
                 exit(1)
-            security_patch_dir = Path(os.getenv("SECURITY_PATCH_FOLDER"))
+            security_patch_dir = Path(folder)
             if not security_patch_dir.exists():
                 print("Creating security patch directory...")
                 security_patch_dir.mkdir()
