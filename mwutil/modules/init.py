@@ -165,8 +165,8 @@ class Init(GlobalMWUtilModule):
                     if option.validation_pattern:
                         if not re.fullmatch(option.validation_pattern, value):
                             print_warning(console, f"Auto-configured value for {option.key} does not match validation pattern!")
-                        if not option.allow_empty and value == "":
-                            print_warning(console, f"Auto-configured value for {option.key} is empty but empty values are not allowed!")
+                    if not option.allow_empty and value == "":
+                        print_warning(console, f"Auto-configured value for {option.key} is empty but empty values are not allowed!")
                     options[option.key] = value
                 else:
                     options[option.key] = default
