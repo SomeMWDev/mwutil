@@ -84,7 +84,7 @@ class Init(GlobalMWUtilModule):
                     stderr=subprocess.PIPE,
                     check=True,
                 )
-            except subprocess.CalledProcessError:
+            except (subprocess.CalledProcessError, FileNotFoundError):
                 print_failure(console, "git-review is not installed.")
                 print_failure(console, "Please install git-review to proceed. On Fedora, you can install it via 'sudo dnf install git-review'.")
                 if debug:
