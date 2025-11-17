@@ -1,6 +1,7 @@
 import os
 import re
 import subprocess
+import json
 from argparse import ArgumentParser, Namespace
 
 import dotenv
@@ -241,13 +242,15 @@ class Init(GlobalMWUtilModule):
 
     @staticmethod
     def clone_core(console: Console, debug: bool | None):
+        gerrit_username = os.getenv("GERRIT_USERNAME")
+        mw_branch = os.getenv("MW_BRANCH")
         with console.status("Cloning MediaWiki core (this may take some time)...", spinner="dots"):
             command = [
                 "git",
                 "clone",
-                f"ssh://{os.getenv("GERRIT_USERNAME")}@gerrit.wikimedia.org:29418/mediawiki/core",
+                f"ssh://{gerrit_username}@gerrit.wikimedia.org:29418/mediawiki/core",
                 "-b",
-                os.getenv("MW_BRANCH"),
+                mw_branch,
             ]
             run_command(console, command, debug)
         print_success(console, "Successfully cloned MediaWiki core.")
@@ -265,7 +268,6 @@ class Init(GlobalMWUtilModule):
         with console.status("Creating .mwutil.json...", spinner="dots"):
             default_config = {}
             with open(".mwutil.json", "w") as f:
-                import json
                 json.dump(default_config, f, indent=4)
         print_success(console, "Created .mwutil.json.")
 
