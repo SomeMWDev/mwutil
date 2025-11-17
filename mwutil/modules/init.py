@@ -163,7 +163,7 @@ class Init(GlobalMWUtilModule):
                 elif callable(default):
                     value = default(options, project_name)
                     if option.validation_pattern:
-                        if not re.match(option.validation_pattern, value):
+                        if not re.fullmatch(option.validation_pattern, value):
                             print_warning(console, f"Auto-configured value for {option.key} does not match validation pattern!")
                         if not option.allow_empty and value == "":
                             print_warning(console, f"Auto-configured value for {option.key} is empty but empty values are not allowed!")
@@ -211,7 +211,7 @@ class Init(GlobalMWUtilModule):
                 if not option.allow_empty and answer_value == "":
                     print_failure(console, "This value cannot be empty.")
                     return False
-                if option.validation_pattern and not re.match(option.validation_pattern, answer_value):
+                if option.validation_pattern and not re.fullmatch(option.validation_pattern, answer_value):
                     print_failure(console, f"Invalid format. Must match: {option.validation_pattern}")
                     return False
                 return True
