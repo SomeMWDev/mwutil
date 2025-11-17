@@ -100,7 +100,7 @@ class Init(GlobalMWUtilModule):
         print_info(console, "It can contain only letters, numbers, hyphens and underscores.")
         while True:
             name = Prompt.ask("Enter a name for your new MediaWiki project")
-            if project_name_pattern.match(name):
+            if project_name_pattern.fullmatch(name):
                 # check if folder exists
                 if os.path.exists(name):
                     print_failure(console, f"The folder '{name}' already exists in the current directory.")
