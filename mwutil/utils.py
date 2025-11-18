@@ -1,10 +1,14 @@
 import re
+import time
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Callable
 
 import dotenv
 from argcomplete.completers import BaseCompleter
 from dotenv import load_dotenv
+from pyperclip import copy
+from watchdog.events import FileSystemEventHandler, DirModifiedEvent, FileModifiedEvent
 
 from mwutil.local_config import populate_config_from_env, MWUtilConfig
 
@@ -63,3 +67,16 @@ def get_core_version(config: MWUtilConfig) -> MWVersion | None:
             if match:
                 return MWVersion.parse(match.group(1))
     return None
+
+class CopyOnChangeHandler(FileSystemEventHandler):
+    def __init__(self, file: Path):
+        self.file = file
+
+    def on_modified(self, event: DirModifiedEvent | FileModifiedEvent) -> None:
+        if Path(event.src_path) == self.file:
+            try:
+                with open(event.src_path, "r", encoding="utf-8") as f:
+                    copy(f.read())
+                    print(f"Copied updated file to clipboard at {time.ctime()}")
+            except Exception as e:
+                print(f"Error copying to clipboard: {e}")

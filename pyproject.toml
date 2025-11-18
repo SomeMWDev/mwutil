@@ -6,9 +6,11 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "argcomplete>=3.6.2",
+    "pyperclip>=1.11.0",
     "python-dotenv>=1.1.1",
     "questionary>=2.1.1",
     "rich>=14.2.0",
+    "watchdog>=6.0.0",
 ]
 [project.scripts]
 mwutil = "mwutil.cli:main"

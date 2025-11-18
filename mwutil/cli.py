@@ -28,6 +28,7 @@ MODULE_NAMES = [
     "list-repo-remotes",
     "phan",
     "phpunit",
+    "profiling",
     "recreate",
     "reset",
     "run",
