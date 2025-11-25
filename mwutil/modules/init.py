@@ -314,7 +314,7 @@ class Init(GlobalMWUtilModule):
             print_success(console, "Cloned Vector skin.")
 
             with console.status("Enabling Vector as the default skin in LocalSettings.php...", spinner="dots"):
-                line = r"MediaWikiConfig::getInstance()->Vector( true );"
+                line = r"$c->Vector( true );"
                 with open("LocalSettings.php", "a") as f:
                     f.write(f"\n{line}\n")
             print_success(console, "Enabled Vector as the default skin.")
