@@ -3,6 +3,7 @@ SUPPORTED_BRANCHES = [
     "REL1_39",
     "REL1_43",
     "REL1_44",
+    "REL1_45",
 ]
 
 # https://www.mediawiki.org/wiki/Manual:$wgLegalTitleChars
