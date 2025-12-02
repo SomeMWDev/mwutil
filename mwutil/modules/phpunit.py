@@ -13,6 +13,14 @@ class PhpUnit(MWUtilModule):
 
     def populate_subparser(self, parser: ArgumentParser, config: MWUtilConfig):
         parser.add_argument(
+            "-g",
+            "--group",
+            dest="group",
+            help="Group to run tests on",
+            type=str
+        )
+
+        parser.add_argument(
             "extra_args",
             nargs=argparse.REMAINDER,
             help="Additional arguments to pass to PHPUnit"
@@ -20,4 +28,11 @@ class PhpUnit(MWUtilModule):
         pass
 
     def execute(self, config: MWUtilConfig, args: Namespace):
-        run_container_command(config, ["composer", "phpunit:entrypoint", "--"] + args.extra_args)
+        extra_args = args.extra_args
+        if args.group:
+            extra_args += ["--group", args.group]
+
+        run_container_command(
+            config,
+            ["composer", "phpunit:entrypoint", "--"] + extra_args + ["-c", "tests/phpunit/suite.xml"]
+        )
