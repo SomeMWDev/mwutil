@@ -20,6 +20,14 @@ class Lint(MWUtilModule):
             nargs="?"
         )
 
+        parser.add_argument(
+            "-f",
+            "--fix",
+            action="store_true",
+            help="Run phpcbf",
+            default=False
+        )
+
     def execute(self, config: MWUtilConfig, args: Namespace):
         def run_lint_command() -> CompletedProcess:
             return run_container_command(config, [
@@ -32,3 +40,6 @@ class Lint(MWUtilModule):
             config.modules["composer"].execute(config, Namespace(folder=args.folder, extra_args=[]))
             print("Retrying...")
             run_lint_command()
+
+        if args.fix:
+            run_container_command( config, [ "composer", "run", "fix" ], workdir=args.folder )
