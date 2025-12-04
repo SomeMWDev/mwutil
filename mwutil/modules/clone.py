@@ -13,7 +13,7 @@ class Clone(MWUtilModule):
         return "Clone an extension or a skin"
 
     def populate_subparser(self, parser: ArgumentParser, config: MWUtilConfig):
-        parser.add_argument("type", choices=["extension", "skin", "service"], help="Type of repo to pull")
+        parser.add_argument("type", choices=["extension", "skin", "service", "tool"], help="Type of repo to pull")
 
         parser.add_argument("--name", help="Name of extension or skin")
 
