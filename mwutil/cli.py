@@ -26,6 +26,7 @@ MODULE_NAMES = [
     "elasticsearch",
     "lint",
     "list-repo-remotes",
+    "logs",
     "parser-tests",
     "phan",
     "phpunit",
