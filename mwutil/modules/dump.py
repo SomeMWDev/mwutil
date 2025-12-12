@@ -35,6 +35,14 @@ class Dump(MWUtilModule):
         dump = config.dumpdir / f"{args.dumpname}.sql"
 
         if args.action == "delete":
+            if args.dumpname == 'all':
+                for file in config.dumpdir.iterdir():
+                    file: Path
+                    if file.suffix == ".sql":
+                        file.unlink()
+                        print(f"Deleted {file.absolute()}")
+                print(f"Deleted all dumps.")
+                return
             dump.unlink()
             print("Successfully deleted dump file.")
             return
@@ -42,6 +50,9 @@ class Dump(MWUtilModule):
         database = os.getenv("MWC_DB_DATABASE")
 
         if args.action == "create":
+            if args.dumpname == 'all':
+                print("'all' cannot be used as a dump name.")
+                return
             print("Creating dump...")
             dump_text = run_wiki_db_command(
                 config,
