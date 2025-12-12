@@ -41,7 +41,7 @@ class Dump(MWUtilModule):
                     if file.suffix == ".sql":
                         file.unlink()
                         print(f"Deleted {file.absolute()}")
-                print(f"Deleted all dumps.")
+                print("Deleted all dumps.")
                 return
             dump.unlink()
             print("Successfully deleted dump file.")
