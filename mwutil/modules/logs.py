@@ -1,6 +1,7 @@
 from argparse import ArgumentParser, Namespace
 
 from argcomplete import ChoicesCompleter
+from hfilesize import FileSize
 
 from mwutil.files import FileWrapper
 from mwutil.local_config import MWUtilConfig
@@ -27,13 +28,21 @@ class Logs(MWUtilModule):
             help="One of the options (e.g. dberror), or a custom file path (e.g. mariadb:///var/log/bootstrap.log)"
         ).completer = ChoicesCompleter(self.FILES.keys())
 
-        parser.add_argument(
-            "action",
+        action_subparsers = parser.add_subparsers(
+            dest="action",
+            required=False,
+            help="The action to perform on the log file (default: show)"
+        )
+
+        action_subparsers.add_parser("show", help="Show the contents of the log file")
+
+        action_subparsers.add_parser("clear", help="Clear the contents of the log file")
+
+        trim_parser = action_subparsers.add_parser("trim", help="Trim the log file")
+        trim_parser.add_argument(
+            "size",
             type=str,
-            choices=["show", "clear"],
-            default="show",
-            help="The action to perform on the selected log file",
-            nargs="?",
+            help="The size to trim the log file to (e.g. 10M for 10 megabytes)"
         )
 
     def execute(self, config: MWUtilConfig, args: Namespace):
@@ -41,10 +50,21 @@ class Logs(MWUtilModule):
         template = self.FILES.get(file) or file
         file = FileWrapper.from_path(config, template)
 
-        action = args.action
+        action = args.action or "show"
         if action == "show":
             file.stream_to_stdout()
         elif action == "clear":
             print(f"Clearing log file: {template}")
             file.write_text("")
             print("Done.")
+        elif action == "trim":
+            size = args.size
+            max_bytes = FileSize(size)
+            text = file.read()
+            if len(text) <= max_bytes:
+                print("Log file is already within the specified size.")
+                return
+            prefix = "[... trimmed by mwutil ...]\n"
+            trimmed_text = prefix + text[-(max_bytes - len(prefix)):]
+            file.write_text(trimmed_text)
+            print(f"Trimmed log file to the last {size}.")

@@ -12,6 +12,12 @@ wheels = [
 ]
 
 [[package]]
+name = "hfilesize"
+version = "0.1.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/6f/29/23423e1022626fe2251fbbf3e0854c6f1e954d740537718938ba5072c8a4/hfilesize-0.1.0.zip", hash = "sha256:560578c395a3b9b0fd25f93c6fb75008e0797cff48b462656c2bc7373179fa30", size = 7409, upload-time = "2014-03-23T17:55:40.002Z" }
+
+[[package]]
 name = "markdown-it-py"
 version = "4.0.0"
 source = { registry = "https://pypi.org/simple" }
@@ -38,6 +44,7 @@ version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
     { name = "argcomplete" },
+    { name = "hfilesize" },
     { name = "pyperclip" },
     { name = "python-dotenv" },
     { name = "questionary" },
@@ -53,6 +60,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "argcomplete", specifier = ">=3.6.2" },
+    { name = "hfilesize", specifier = ">=0.1.0" },
     { name = "pyperclip", specifier = ">=1.11.0" },
     { name = "python-dotenv", specifier = ">=1.1.1" },
     { name = "questionary", specifier = ">=2.1.1" },

@@ -45,7 +45,7 @@ class HostFile(FileWrapper):
         self.path = path
 
     def read(self):
-        with open(self.path, "r") as file:
+        with open(self.path, "r", errors="replace") as file:
             return file.read()
 
     def stream_to_stdout(self):
