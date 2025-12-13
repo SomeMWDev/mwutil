@@ -37,7 +37,7 @@ class DB(MWUtilModule):
             set_env_key(config, "MWC_DB_TYPE", dbtype)
             set_env_key(config, "MWC_DB_HOST", dbtype)
             print("Restarting containers...")
-            config.modules["recreate"].execute(config, Namespace())
+            config.modules["recreate"].execute(config, Namespace(container=None))
 
             print("Waiting 10 seconds for the database to start...")
             time.sleep(10)
