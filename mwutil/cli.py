@@ -31,6 +31,7 @@ MODULE_NAMES = [
     "phan",
     "phpunit",
     "profiling",
+    "pull",
     "recreate",
     "reset",
     "run",

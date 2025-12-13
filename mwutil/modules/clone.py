@@ -11,12 +11,12 @@ from mwutil.module import MWUtilModule
 class Clone(MWUtilModule):
 
     def get_description(self):
-        return "Clone an extension or a skin"
+        return "Clone a repository from GitHub or Gerrit"
 
     def populate_subparser(self, parser: ArgumentParser, config: MWUtilConfig):
         parser.add_argument("type", choices=REPO_TYPES, help="Type of repo to pull")
 
-        parser.add_argument("--name", help="Name of extension or skin")
+        parser.add_argument("--name", help="Name for the local repo")
 
         parser.add_argument("origin", choices=["github", "gerrit"], help="Origin of repo")
         parser.add_argument("repo", help="Repo to pull")
