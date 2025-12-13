@@ -63,7 +63,7 @@ class Clone(MWUtilModule):
         target_folder_name = args.type + "s"
         target_folder = config.basedir / target_folder_name
 
-        def clone(shallow: bool, branch: str | None) -> int:
+        def clone(shallow: bool, branch: str | None) -> tuple[str, str, int]:
             command = [
                 "git",
                 "clone",
@@ -74,18 +74,24 @@ class Clone(MWUtilModule):
                 command.extend(["--depth", "1"])
             if branch:
                 command.extend(["--branch", branch])
-            return run_command(command, target_folder).returncode
+            res = run_command(command, target_folder, capture_output=True)
+            return res.stdout.decode(), res.stderr.decode(), res.returncode
 
         if args.branch:
             clone(args.shallow, args.branch)
         else:
             # try to clone core branch first
-            exit_code = clone(args.shallow, config.mw_branch)
+            stdout, stderr, exit_code = clone(args.shallow, config.mw_branch)
+            print(f"Git clone exited with code {exit_code}")
             # TODO: validate the git error message here! it looks something like
             # "fatal: Remote branch REL1_44 not found in upstream origin" and is printed to stderr.
             # However, we don't want to capture the output of the git command right now (as it would break the progress
             # bar), so we just rely on the exit code for now.
             if exit_code == 128:
+                if "already exists and is not an empty directory" in stderr:
+                    print(f"Directory {target_folder / name} already exists and is not empty. Pulling instead.")
+                    config.modules["pull"].execute(config, Namespace(type=args.type, name=name))
+                    return
                 # fallback to default branch
                 print(f"Branch {config.mw_branch} not found, cloning default branch instead.")
                 clone(args.shallow, None)
