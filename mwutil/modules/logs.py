@@ -1,5 +1,7 @@
 from argparse import ArgumentParser, Namespace
 
+from argcomplete import ChoicesCompleter
+
 from mwutil.files import FileWrapper
 from mwutil.local_config import MWUtilConfig
 from mwutil.module import MWUtilModule
@@ -22,11 +24,11 @@ class Logs(MWUtilModule):
         parser.add_argument(
             "file",
             type=str,
-            choices=self.FILES.keys()
-        )
+            help="One of the options (e.g. dberror), or a custom file path (e.g. mariadb:///var/log/bootstrap.log)"
+        ).completer = ChoicesCompleter(self.FILES.keys())
 
     def execute(self, config: MWUtilConfig, args: Namespace):
         file = args.file
-        template = self.FILES.get(file)
+        template = self.FILES.get(file) or file
         file = FileWrapper.from_path(config, template)
         file.stream_to_stdout()
