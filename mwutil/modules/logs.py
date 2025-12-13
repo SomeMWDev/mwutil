@@ -27,8 +27,24 @@ class Logs(MWUtilModule):
             help="One of the options (e.g. dberror), or a custom file path (e.g. mariadb:///var/log/bootstrap.log)"
         ).completer = ChoicesCompleter(self.FILES.keys())
 
+        parser.add_argument(
+            "action",
+            type=str,
+            choices=["show", "clear"],
+            default="show",
+            help="The action to perform on the selected log file",
+            nargs="?",
+        )
+
     def execute(self, config: MWUtilConfig, args: Namespace):
         file = args.file
         template = self.FILES.get(file) or file
         file = FileWrapper.from_path(config, template)
-        file.stream_to_stdout()
+
+        action = args.action
+        if action == "show":
+            file.stream_to_stdout()
+        elif action == "clear":
+            print(f"Clearing log file: {template}")
+            file.write_text("")
+            print("Done.")

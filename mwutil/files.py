@@ -36,17 +36,25 @@ class FileWrapper(ABC):
     def stream_to_stdout(self):
         raise NotImplementedError("Subclasses must implement this method")
 
+    def write_text(self, text: str, overwrite: bool = True):
+        raise NotImplementedError("Subclasses must implement this method")
+
 
 class HostFile(FileWrapper):
     def __init__(self, path: str):
         self.path = path
 
     def read(self):
-        with open(self.path, 'r') as file:
+        with open(self.path, "r") as file:
             return file.read()
 
     def stream_to_stdout(self):
         subprocess.run(["cat", self.path], check=True)
+
+    def write_text(self, text: str, overwrite: bool = True):
+        mode = "w" if overwrite else "a"
+        with open(self.path, mode) as file:
+            file.write(text)
 
 class ContainerFile(FileWrapper):
     def __init__(self, container_name: str, path: str, config: MWUtilConfig):
@@ -57,7 +65,7 @@ class ContainerFile(FileWrapper):
     def read(self):
         result = run_container_command(
             self.config,
-            ['cat', self.path],
+            ["cat", self.path],
             container_name=self.container_name,
             capture_output=True,
             text=True,
@@ -70,9 +78,19 @@ class ContainerFile(FileWrapper):
     def stream_to_stdout(self):
         run_container_command(
             self.config,
-            ['cat', self.path],
+            ["cat", self.path],
             container_name=self.container_name,
             capture_output=False,
             text=True,
+            exec_options=["-u", "root"]
+        )
+
+    def write_text(self, text: str, overwrite: bool = True):
+        redirection = ">" if overwrite else ">>"
+        command = f"echo {subprocess.list2cmdline([text])} {redirection} {self.path}"
+        run_container_command(
+            self.config,
+            ["sh", "-c", command],
+            container_name=self.container_name,
             exec_options=["-u", "root"]
         )
