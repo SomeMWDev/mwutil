@@ -2,6 +2,7 @@ from argparse import ArgumentParser, Namespace
 from collections import OrderedDict
 from pathlib import Path
 
+from mwutil.constants import REPO_FOLDERS
 from mwutil.local_config import MWUtilConfig
 from mwutil.exec import run_command
 from mwutil.module import MWUtilModule
@@ -16,10 +17,10 @@ class ListRepoRemotes(MWUtilModule):
         pass
 
     def execute(self, config: MWUtilConfig, args: Namespace):
-        print("Extensions:")
-        self.list_folder(config.basedir / "extensions")
-        print("\nSkins:")
-        self.list_folder(config.basedir / "skins")
+        for folder in REPO_FOLDERS:
+            print(f"{folder.capitalize()}:")
+            self.list_folder(config.basedir / folder)
+            print("")
 
     @staticmethod
     def list_folder(parent_folder: Path):
