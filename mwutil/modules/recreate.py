@@ -8,10 +8,19 @@ from mwutil.module import MWUtilModule
 class Recreate(MWUtilModule):
 
     def get_description(self):
-        return "Recreate all containers"
+        return "Recreate containers"
 
     def populate_subparser(self, parser: ArgumentParser, config: MWUtilConfig):
-        pass
+        parser.add_argument(
+            "container",
+            type=str,
+            nargs="?",
+            default=None,
+            help="Name of the container",
+        )
 
     def execute(self, config: MWUtilConfig, args: Namespace):
-        run_docker_command(config, ["up", "-d", "--force-recreate"])
+        command = ["up", "-d", "--force-recreate"]
+        if args.container:
+            command.append(args.container)
+        run_docker_command(config, command)
