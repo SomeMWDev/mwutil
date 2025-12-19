@@ -34,5 +34,5 @@ class ParserTests(MWUtilModule):
 
         run_container_command(
             config,
-            ["php", "tests/parser/parserTests.php", "--"] + extra_args
+            ["php", "tests/parser/parserTests.php"] + extra_args
         )
