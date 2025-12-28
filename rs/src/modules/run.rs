@@ -1,6 +1,11 @@
+use std::fmt::format;
+use clap_complete::ArgValueCompleter;
+use std::fs;
+use std::path::PathBuf;
 use std::process::Command;
 use clap::Args;
-use crate::config::MWUtilConfig;
+use clap_complete::CompletionCandidate;
+use crate::config::{find_base_dir, MWUtilConfig};
 use crate::constants::MEDIAWIKI_CONTAINER;
 use crate::exec::ContainerSupport;
 use crate::utils::get_core_version;
@@ -8,6 +13,7 @@ use crate::utils::get_core_version;
 #[derive(Args, Default)]
 pub struct RunArgs {
     /// The name of the maintenance script to run
+    #[arg(add = ArgValueCompleter::new(script_completer))]
     script: String,
 
     /// Additional arguments to pass to the script
@@ -30,9 +36,50 @@ pub fn execute(config: MWUtilConfig, args: RunArgs) -> anyhow::Result<()> {
         }
     }
     cmd.args(args.extra_args);
-    
+
     cmd.in_container(MEDIAWIKI_CONTAINER, None)
         .status()
         .ok();
     Ok(())
+}
+
+fn script_completer(_current: &std::ffi::OsStr) -> Vec<CompletionCandidate> {
+    let Some(base_dir) = find_base_dir() else {
+        return vec![];
+    };
+    let mut result = vec![CompletionCandidate::new("works")];
+
+    add_scripts_from_directory(
+        base_dir.join("core").join("maintenance"),
+        None,
+        &mut result
+    );
+    if let Ok(extensions) = fs::read_dir(base_dir.join("extensions")) {
+        for extension in extensions.flatten() {
+            add_scripts_from_directory(
+                extension.path().join("maintenance"),
+                Some(extension.file_name().to_str().unwrap()),
+                &mut result
+            );
+        }
+    }
+
+    result
+}
+
+fn add_scripts_from_directory(folder: PathBuf, prefix: Option<&str>, result: &mut Vec<CompletionCandidate>) {
+    let scripts = fs::read_dir(folder);
+    if let Ok(entries) = scripts {
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if path.is_file() && path.extension() == Some("php".as_ref()) && let Some(name) = path.file_name() {
+                if let Some(prefix) = prefix {
+                    let name = name.to_str().expect("Failed to decode file name string");
+                    result.push(CompletionCandidate::new(format!("{prefix}:{name}")));
+                } else {
+                    result.push(CompletionCandidate::new(name));
+                }
+            }
+        }
+    }
 }

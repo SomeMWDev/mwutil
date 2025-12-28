@@ -130,7 +130,7 @@ fn load_env(config_dir: &PathBuf) {
     dotenv::from_path(config_dir.join(".env")).ok();
 }
 
-fn find_base_dir() -> Option<PathBuf> {
+pub fn find_base_dir() -> Option<PathBuf> {
     let mut current = env::current_dir().ok()?;
 
     loop {
