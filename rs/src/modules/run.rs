@@ -1,4 +1,3 @@
-use std::fmt::format;
 use clap_complete::ArgValueCompleter;
 use std::fs;
 use std::path::PathBuf;
@@ -14,15 +13,15 @@ use crate::utils::get_core_version;
 pub struct RunArgs {
     /// The name of the maintenance script to run
     #[arg(add = ArgValueCompleter::new(script_completer))]
-    script: String,
+    pub script: String,
 
     /// Additional arguments to pass to the script
     #[arg(trailing_var_arg = true)]
-    extra_args: Vec<String>,
+    pub extra_args: Vec<String>,
 }
 
-pub fn execute(config: MWUtilConfig, args: RunArgs) -> anyhow::Result<()> {
-    let core_version = get_core_version(&config);
+pub fn execute(config: &MWUtilConfig, args: RunArgs) -> anyhow::Result<()> {
+    let core_version = get_core_version(config);
     let mut cmd: Command;
     if core_version.map(|v|v.minor).unwrap_or(0) >= 40 {
         cmd = Command::new("maintenance/run");

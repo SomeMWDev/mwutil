@@ -3,8 +3,8 @@ use anyhow::{anyhow, Context};
 use console::style;
 use std::process::Command;
 
-pub fn execute(config: MWUtilConfig) -> anyhow::Result<()> {
-    let key = config.gerrit_ssh_key
+pub fn execute(config: &MWUtilConfig) -> anyhow::Result<()> {
+    let key = config.gerrit_ssh_key.clone()
         .ok_or_else(|| anyhow!("GERRIT_SSH_KEY is not set in configuration!"))?;
 
     if config.debug {

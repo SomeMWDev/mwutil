@@ -7,6 +7,7 @@ use regex::Regex;
 use crate::exec::CommandExt;
 use crate::modules::composer;
 use crate::modules::composer::ComposerArgs;
+use crate::{run_module, Modules};
 use crate::types::{CloneMethod, RepoOrigin, RepoType};
 
 #[derive(Args)]
@@ -42,7 +43,7 @@ pub struct CloneArgs {
     branch: Option<String>,
 }
 
-pub fn execute(config: MWUtilConfig, args: CloneArgs) -> anyhow::Result<()> {
+pub fn execute(config: &MWUtilConfig, args: CloneArgs) -> anyhow::Result<()> {
     let repo_data = get_repo_data(&config, &args.repo_type, args.repo_origin, args.repo, args.method);
     let name = args.name.unwrap_or(repo_data.0);
     let url = repo_data.1;
@@ -68,7 +69,7 @@ pub fn execute(config: MWUtilConfig, args: CloneArgs) -> anyhow::Result<()> {
         composer::execute(ComposerArgs::default())?;
     }
     if args.repo_type == RepoType::Extension {
-        // TODO run update
+        run_module(Modules::Update, Some(&config))?;
     }
 
     Ok(())

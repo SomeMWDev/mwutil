@@ -1,6 +1,6 @@
-use clap::{CommandFactory, Parser, Subcommand};
+use clap::{arg, CommandFactory, Parser, Subcommand};
 use console::Term;
-use crate::config::load_mwutil_config;
+use crate::config::{load_mwutil_config, MWUtilConfig};
 use crate::modules::bash::BashArgs;
 use crate::modules::clone::CloneArgs;
 use crate::modules::composer::ComposerArgs;
@@ -24,7 +24,7 @@ struct Cli {
 }
 
 #[derive(Subcommand)]
-enum Modules {
+pub enum Modules {
     /// Adds the Gerrit SSH key to the SSH agent
     AddGerritSSHKey,
     /// Starts a bash shell in a container
@@ -35,23 +35,33 @@ enum Modules {
     Composer(ComposerArgs),
     /// Runs a maintenance script
     Run(RunArgs),
+    /// Runs update.php
+    Update,
 }
 
 fn main() -> anyhow::Result<()> {
     clap_complete::CompleteEnv::with_factory(Cli::command).complete();
 
     let cli = Cli::parse();
-
     let config = load_mwutil_config(cli.debug);
 
-    let term = Term::stdout();
+    run_module(cli.module, config.as_ref().ok())?;
+
+    Ok(())
+}
+
+pub fn run_module(module: Modules, config: Option<&MWUtilConfig>) -> anyhow::Result<()> {
     // TODO don't unwrap config
-    match cli.module {
+    match module {
         Modules::AddGerritSSHKey => modules::add_gerrit_ssh_key::execute(config.unwrap())?,
         Modules::Bash(args) => modules::bash::execute(args)?,
         Modules::Clone(args) => modules::clone::execute(config.unwrap(), args)?,
         Modules::Composer(args) => modules::composer::execute(args)?,
         Modules::Run(args) => modules::run::execute(config.unwrap(), args)?,
+        Modules::Update => modules::run::execute(config.unwrap(), RunArgs {
+            script: "update".into(),
+            extra_args: vec!["--quick".into()],
+        })?,
     }
 
     Ok(())
