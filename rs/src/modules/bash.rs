@@ -21,6 +21,7 @@ pub struct BashArgs {
     #[arg(short, long)]
     root: bool,
 
+    /// The command to execute in the container
     #[arg(trailing_var_arg = true)]
     command: Vec<String>,
 }

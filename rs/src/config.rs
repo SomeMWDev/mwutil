@@ -28,28 +28,28 @@ impl FromStr for DBType {
 }
 
 impl DBType {
-    fn get_db_name(&self) -> &'static str {
+    pub fn get_db_name(&self) -> &'static str {
         match self {
             DBType::Mysql => "mysql",
             DBType::Mariadb => "mariadb"
         }
     }
 
-    fn get_container_name(&self) -> &'static str {
+    pub fn get_container_name(&self) -> &'static str {
         match self {
             DBType::Mysql => "mysql",
             DBType::Mariadb => "mariadb"
         }
     }
 
-    fn get_query_command(&self) -> &'static str {
+    pub fn get_query_command(&self) -> &'static str {
         match self {
             DBType::Mysql => "mysql",
             DBType::Mariadb => "mariadb"
         }
     }
 
-    fn get_dump_command(&self) -> &'static str {
+    pub fn get_dump_command(&self) -> &'static str {
         match self {
             DBType::Mysql => "mysqldump",
             DBType::Mariadb => "mariadb-dump"
@@ -65,6 +65,8 @@ pub struct MWUtilConfig {
     pub dump_dir: PathBuf,
 
     pub db_type: DBType,
+    pub db_root_password: Option<String>,
+    pub mw_database: Option<String>,
     pub mw_install_path: String,
     pub mw_branch: String,
 
@@ -118,6 +120,8 @@ pub fn load_mwutil_config(debug: bool) -> Result<MWUtilConfig, LoadMWUtilConfigE
         base_dir,
 
         db_type,
+        db_root_password: env::var("MWC_DB_ROOT_PASSWORD").ok(),
+        mw_database: env::var("MWC_DB_DATABASE").ok(),
         mw_install_path,
         mw_branch,
 

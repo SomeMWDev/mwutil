@@ -6,6 +6,7 @@ use crate::modules::composer::ComposerArgs;
 use crate::modules::pull::PullArgs;
 use crate::modules::recreate::RecreateArgs;
 use crate::modules::run::RunArgs;
+use crate::modules::sql::SqlArgs;
 
 mod config;
 mod modules;
@@ -48,6 +49,8 @@ pub enum Modules {
     SetupGerrit,
     /// Starts an interactive PHP shell
     Shell,
+    /// Starts an interactive SQL shell
+    Sql(SqlArgs),
     /// Starts all containers
     Up,
     /// Runs update.php
@@ -80,6 +83,7 @@ pub fn run_module(module: Modules, config: Option<&MWUtilConfig>) -> anyhow::Res
             script: "shell".into(),
             ..Default::default()
         })?,
+        Modules::Sql(args) => modules::sql::execute(config, args)?,
         Modules::Pull(args) => modules::pull::execute(config, args)?,
         Modules::Recreate(args) => modules::recreate::execute(config, args)?,
         Modules::Run(args) => modules::run::execute(config, args)?,
