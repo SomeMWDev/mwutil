@@ -82,6 +82,9 @@ class Clone(MWUtilModule):
         else:
             # try to clone core branch first
             stdout, stderr, exit_code = clone(args.shallow, config.mw_branch)
+            # TODO: remove prints
+            print(stdout)
+            print(stderr)
             print(f"Git clone exited with code {exit_code}")
             # TODO: validate the git error message here! it looks something like
             # "fatal: Remote branch REL1_44 not found in upstream origin" and is printed to stderr.
