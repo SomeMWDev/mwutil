@@ -46,6 +46,8 @@ pub enum Modules {
     SetupGithub,
     /// Sets up git-review in a local repository that was cloned from gerrit
     SetupGerrit,
+    /// Starts an interactive PHP shell
+    Shell,
     /// Starts all containers
     Up,
     /// Runs update.php
@@ -74,6 +76,10 @@ pub fn run_module(module: Modules, config: Option<&MWUtilConfig>) -> anyhow::Res
         Modules::Down => modules::down::execute(config)?,
         Modules::SetupGerrit => modules::setup_gerrit::execute(config, None)?,
         Modules::SetupGithub => modules::setup_github::execute(config, None)?,
+        Modules::Shell => modules::run::execute(config, RunArgs {
+            script: "shell".into(),
+            ..Default::default()
+        })?,
         Modules::Pull(args) => modules::pull::execute(config, args)?,
         Modules::Recreate(args) => modules::recreate::execute(config, args)?,
         Modules::Run(args) => modules::run::execute(config, args)?,

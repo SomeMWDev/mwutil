@@ -1,5 +1,4 @@
 use std::process::Command;
-use std::str::FromStr;
 use clap::{Args, Error};
 use clap::error::ErrorKind;
 use crate::config::MWUtilConfig;
