@@ -55,7 +55,7 @@ pub fn execute(config: &MWUtilConfig, args: CloneArgs) -> anyhow::Result<()> {
         if stderr.contains("already exists and is not an empty directory") {
             println!("Directory already exists and is not empty. Pulling instead...");
             return pull::execute(config, PullArgs {
-                repo_type: PullRepoType::Enum(args.repo_type),
+                repo_type: PullRepoType::from_repo_type(&args.repo_type),
                 name: Some(name),
             });
         }
