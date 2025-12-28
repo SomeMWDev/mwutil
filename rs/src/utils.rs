@@ -1,4 +1,7 @@
 use std::fs;
+use std::path::PathBuf;
+use std::process::Command;
+use anyhow::anyhow;
 use clap_complete::CompletionCandidate;
 use regex::Regex;
 use crate::config::{load_mwutil_config, MWUtilConfig};
@@ -34,3 +37,13 @@ pub fn get_core_version(config: &MWUtilConfig) -> Option<MWVersion> {
         .map(|c|c.get(0).unwrap().as_str())
         .and_then(MWVersion::parse)
 }
+
+pub fn set_git_config(option: &str, value: &str, repo_folder: &PathBuf) -> anyhow::Result<()> {
+    Command::new("git")
+        .args(["config", "--local", option, value])
+        .current_dir(repo_folder)
+        .status()
+        .map_err(|e| anyhow!("Failed to set git option: {}", e))?;
+    Ok(())
+}
+

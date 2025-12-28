@@ -1,8 +1,8 @@
 use std::env;
 use std::path::PathBuf;
 use std::process::Command;
-use anyhow::anyhow;
 use crate::config::MWUtilConfig;
+use crate::utils::set_git_config;
 
 pub fn execute(config: &MWUtilConfig, repo_folder: Option<PathBuf>) -> anyhow::Result<()> {
     // TODO fix unwrap
@@ -20,14 +20,5 @@ pub fn execute(config: &MWUtilConfig, repo_folder: Option<PathBuf>) -> anyhow::R
         .args(["review", "-s", "--verbose"])
         .current_dir(repo_folder)
         .status()?;
-    Ok(())
-}
-
-fn set_git_config(option: &str, value: &str, repo_folder: &PathBuf) -> anyhow::Result<()> {
-    Command::new("git")
-        .args(["config", "--local", option, value])
-        .current_dir(repo_folder)
-        .status()
-        .map_err(|e| anyhow!("Failed to set git option: {}", e))?;
     Ok(())
 }

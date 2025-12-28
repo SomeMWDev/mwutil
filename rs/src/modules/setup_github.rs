@@ -1,0 +1,13 @@
+use std::env;
+use std::path::PathBuf;
+use crate::config::MWUtilConfig;
+use crate::utils::set_git_config;
+
+pub fn execute(config: &MWUtilConfig, repo_folder: Option<PathBuf>) -> anyhow::Result<()> {
+    // TODO fix unwrap
+    let repo_folder = repo_folder.unwrap_or(env::current_dir()?);
+    set_git_config("user.email", config.git_email.clone().unwrap().as_str(), &repo_folder)?;
+    set_git_config("user.name", config.git_username.clone().unwrap().as_str(), &repo_folder)?;
+    println!("Done!");
+    Ok(())
+}

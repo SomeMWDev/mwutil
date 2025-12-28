@@ -6,7 +6,7 @@ use crate::config::MWUtilConfig;
 use clap::{Args};
 use regex::Regex;
 use crate::exec::CommandExt;
-use crate::modules::{composer, setup_gerrit};
+use crate::modules::{composer, setup_gerrit, setup_github};
 use crate::modules::composer::ComposerArgs;
 use crate::{run_module, Modules};
 use crate::types::{CloneMethod, RepoOrigin, RepoType};
@@ -67,10 +67,12 @@ pub fn execute(config: &MWUtilConfig, args: CloneArgs) -> anyhow::Result<()> {
 
     let repo_folder = target_folder.join(name);
 
-    // TODO run setup-github
     if args.repo_origin == RepoOrigin::Gerrit {
         setup_gerrit::execute(config, Some(repo_folder))?;
+    } else if args.repo_origin == RepoOrigin::Github {
+        setup_github::execute(config, Some(repo_folder))?;
     }
+
     if args.composer {
         composer::execute(config, ComposerArgs::default())?;
     }
