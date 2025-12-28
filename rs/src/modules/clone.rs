@@ -1,3 +1,4 @@
+use std::env::set_current_dir;
 use std::os::unix::prelude::ExitStatusExt;
 use std::path::Path;
 use std::process::{Command, ExitStatus};
@@ -5,7 +6,7 @@ use crate::config::MWUtilConfig;
 use clap::{Args};
 use regex::Regex;
 use crate::exec::CommandExt;
-use crate::modules::composer;
+use crate::modules::{composer, setup_gerrit};
 use crate::modules::composer::ComposerArgs;
 use crate::{run_module, Modules};
 use crate::types::{CloneMethod, RepoOrigin, RepoType};
@@ -44,7 +45,7 @@ pub struct CloneArgs {
 }
 
 pub fn execute(config: &MWUtilConfig, args: CloneArgs) -> anyhow::Result<()> {
-    let repo_data = get_repo_data(config, &args.repo_type, args.repo_origin, args.repo, args.method);
+    let repo_data = get_repo_data(config, &args.repo_type, args.repo_origin.clone(), args.repo, args.method);
     let name = args.name.unwrap_or(repo_data.0);
     let url = repo_data.1;
     let target_folder = config.base_dir.join(args.repo_type.get_plural_name());
@@ -64,7 +65,12 @@ pub fn execute(config: &MWUtilConfig, args: CloneArgs) -> anyhow::Result<()> {
         }
     }
 
-    // TODO run setup-gerrit/setup-github
+    let repo_folder = target_folder.join(name);
+
+    // TODO run setup-github
+    if args.repo_origin == RepoOrigin::Gerrit {
+        setup_gerrit::execute(config, Some(repo_folder))?;
+    }
     if args.composer {
         composer::execute(config, ComposerArgs::default())?;
     }

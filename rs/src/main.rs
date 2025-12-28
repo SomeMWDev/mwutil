@@ -39,6 +39,8 @@ pub enum Modules {
     Recreate(RecreateArgs),
     /// Runs a maintenance script
     Run(RunArgs),
+    /// Sets up git-review in a local repository that was cloned from gerrit
+    SetupGerrit,
     /// Starts all containers
     Up,
     /// Runs update.php
@@ -65,6 +67,7 @@ pub fn run_module(module: Modules, config: Option<&MWUtilConfig>) -> anyhow::Res
         Modules::Clone(args) => modules::clone::execute(config, args)?,
         Modules::Composer(args) => modules::composer::execute(config, args)?,
         Modules::Down => modules::down::execute(config)?,
+        Modules::SetupGerrit => modules::setup_gerrit::execute(config, None)?,
         Modules::Recreate(args) => modules::recreate::execute(config, args)?,
         Modules::Run(args) => modules::run::execute(config, args)?,
         Modules::Update => modules::run::execute(config, RunArgs {

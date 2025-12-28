@@ -6,3 +6,4 @@ pub(crate) mod run;
 pub(crate) mod up;
 pub(crate) mod down;
 pub(crate) mod recreate;
+pub(crate) mod setup_gerrit;
