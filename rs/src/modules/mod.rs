@@ -4,3 +4,4 @@ pub(crate) mod clone;
 pub(crate) mod composer;
 pub(crate) mod run;
 pub(crate) mod up;
+pub(crate) mod down;

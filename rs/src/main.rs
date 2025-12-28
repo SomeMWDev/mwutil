@@ -32,6 +32,8 @@ pub enum Modules {
     Clone(CloneArgs),
     /// Runs composer update
     Composer(ComposerArgs),
+    /// Stops all containers
+    Down,
     /// Runs a maintenance script
     Run(RunArgs),
     /// Starts all containers
@@ -59,6 +61,7 @@ pub fn run_module(module: Modules, config: Option<&MWUtilConfig>) -> anyhow::Res
         Modules::Bash(args) => modules::bash::execute(config, args)?,
         Modules::Clone(args) => modules::clone::execute(config, args)?,
         Modules::Composer(args) => modules::composer::execute(config, args)?,
+        Modules::Down => modules::down::execute(config)?,
         Modules::Run(args) => modules::run::execute(config, args)?,
         Modules::Update => modules::run::execute(config, RunArgs {
             script: "update".into(),
