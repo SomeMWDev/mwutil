@@ -13,6 +13,5 @@ clap = { version = "4.5.53", features = ["derive"] }
 clap_complete = { version = "4.5.62", features = ["unstable-dynamic"] }
 console = "0.16.2"
 dotenv = "0.15.0"
-serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.148"
 regex = "1.12.2"

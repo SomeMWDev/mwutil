@@ -1,4 +1,3 @@
-use std::env::set_current_dir;
 use std::os::unix::prelude::ExitStatusExt;
 use std::path::Path;
 use std::process::{Command, ExitStatus};
@@ -6,9 +5,10 @@ use crate::config::MWUtilConfig;
 use clap::{Args};
 use regex::Regex;
 use crate::exec::CommandExt;
-use crate::modules::{composer, setup_gerrit, setup_github};
+use crate::modules::{composer, pull, setup_gerrit, setup_github};
 use crate::modules::composer::ComposerArgs;
 use crate::{run_module, Modules};
+use crate::modules::pull::{PullArgs, PullRepoType};
 use crate::types::{CloneMethod, RepoOrigin, RepoType};
 
 #[derive(Args)]
@@ -51,11 +51,13 @@ pub fn execute(config: &MWUtilConfig, args: CloneArgs) -> anyhow::Result<()> {
     let target_folder = config.base_dir.join(args.repo_type.get_plural_name());
     let (status, _stdout, stderr) = clone(&url, &name, &target_folder, args.shallow, args.branch.as_ref());
     println!("Git clone exited with status: {}", status);
-    if status.into_raw() == 128 {
+    if status.into_raw() == 32768 {
         if stderr.contains("already exists and is not an empty directory") {
             println!("Directory already exists and is not empty. Pulling instead...");
-            // TODO implement pull
-            return Err(anyhow::anyhow!("Pull not implemented yet"));
+            return pull::execute(config, PullArgs {
+                repo_type: PullRepoType::Enum(args.repo_type),
+                name: Some(name),
+            });
         }
         println!("Attempting to clone default branch instead...");
         let (status, stdout, stderr) = clone(&url, &name, &target_folder, args.shallow, None);

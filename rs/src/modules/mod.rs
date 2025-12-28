@@ -8,3 +8,4 @@ pub(crate) mod down;
 pub(crate) mod recreate;
 pub(crate) mod setup_gerrit;
 pub(crate) mod setup_github;
+pub(crate) mod pull;
