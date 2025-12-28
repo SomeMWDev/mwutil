@@ -64,16 +64,21 @@ pub struct MWUtilConfig {
     pub config_dir: PathBuf,
     pub core_dir: PathBuf,
     pub dump_dir: PathBuf,
+
     pub db_type: DBType,
     pub mw_install_path: String,
     pub mw_branch: String,
+
+    pub gerrit_ssh_key: Option<String>,
+
+    pub debug: bool,
 }
 
 #[derive(Debug)]
 pub struct LoadMWUtilConfigError(pub &'static str);
 
-pub fn load_mwutil_config() -> Result<MWUtilConfig, LoadMWUtilConfigError> {
-    let base_dir = find_base_dir()?;
+pub fn load_mwutil_config(debug: bool) -> Result<MWUtilConfig, LoadMWUtilConfigError> {
+    let base_dir = find_base_dir().ok_or(LoadMWUtilConfigError("Failed to find basedir"))?;
 
     let file = base_dir.join(CONFIG_FILE_NAME);
     let contents = fs::read_to_string(&file)
@@ -107,9 +112,14 @@ pub fn load_mwutil_config() -> Result<MWUtilConfig, LoadMWUtilConfigError> {
         core_dir: get_dir(&json_data, &base_dir, "coredir", "core"),
         dump_dir: get_dir(&json_data, &base_dir, "dumpdir", "dumps"),
         base_dir,
+
         db_type,
         mw_install_path,
-        mw_branch
+        mw_branch,
+
+        gerrit_ssh_key: env::var("GERRIT_SSH_KEY").ok(),
+
+        debug,
     })
 }
 
@@ -117,15 +127,14 @@ fn load_env(config_dir: &PathBuf) {
     dotenv::from_path(config_dir.join(".env")).ok();
 }
 
-fn find_base_dir() -> Result<PathBuf, LoadMWUtilConfigError> {
-    let mut current = env::current_dir()
-        .map_err(|_| LoadMWUtilConfigError("Could not get current directory"))?;
+fn find_base_dir() -> Option<PathBuf> {
+    let mut current = env::current_dir().ok()?;
 
     loop {
         let candidate = current.join(CONFIG_FILE_NAME);
 
         if candidate.is_file() {
-            return Ok(current);
+            return Some(current);
         }
 
         match current.parent() {
@@ -134,5 +143,5 @@ fn find_base_dir() -> Result<PathBuf, LoadMWUtilConfigError> {
         }
     }
 
-    Err(LoadMWUtilConfigError("Did not find base dir with config file."))
+    None
 }
