@@ -3,12 +3,14 @@ use console::Term;
 use crate::config::load_mwutil_config;
 use crate::modules::bash::BashArgs;
 use crate::modules::clone::CloneArgs;
+use crate::modules::composer::ComposerArgs;
 
 mod config;
 mod modules;
 mod utils;
 mod exec;
 mod types;
+mod constants;
 
 #[derive(Parser)]
 #[command(version, about)]
@@ -28,6 +30,7 @@ enum Modules {
     Bash(BashArgs),
     /// Clones a repository from GitHub or Gerrit
     Clone(CloneArgs),
+    Composer(ComposerArgs),
 }
 
 fn main() -> anyhow::Result<()> {
@@ -43,6 +46,7 @@ fn main() -> anyhow::Result<()> {
         Modules::AddGerritSSHKey => modules::add_gerrit_ssh_key::execute(config.unwrap())?,
         Modules::Bash(args) => modules::bash::execute(args)?,
         Modules::Clone(args) => modules::clone::execute(config.unwrap(), args)?,
+        Modules::Composer(args) => modules::composer::execute(args)?,
     }
 
     Ok(())

@@ -5,6 +5,8 @@ use crate::config::MWUtilConfig;
 use clap::{Args};
 use regex::Regex;
 use crate::exec::CommandExt;
+use crate::modules::composer;
+use crate::modules::composer::ComposerArgs;
 use crate::types::{CloneMethod, RepoOrigin, RepoType};
 
 #[derive(Args)]
@@ -33,7 +35,7 @@ pub struct CloneArgs {
 
     /// Run composer update after cloning
     #[clap(long)]
-    composer_update: bool,
+    composer: bool,
 
     /// The branch to clone
     #[clap(short, long)]
@@ -62,8 +64,8 @@ pub fn execute(config: MWUtilConfig, args: CloneArgs) -> anyhow::Result<()> {
     }
 
     // TODO run setup-gerrit/setup-github
-    if args.composer_update {
-        // TODO run composer
+    if args.composer {
+        composer::execute(ComposerArgs::default())?;
     }
     if args.repo_type == RepoType::Extension {
         // TODO run update

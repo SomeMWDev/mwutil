@@ -3,6 +3,7 @@ use std::process::Command;
 use crate::utils::container_completer;
 use clap_complete::{ArgValueCompleter};
 use clap::{Args};
+use crate::constants::MEDIAWIKI_CONTAINER;
 use crate::exec::ContainerSupport;
 
 #[derive(Args)]
@@ -24,7 +25,7 @@ pub struct BashArgs {
 }
 
 pub fn execute(args: BashArgs) -> anyhow::Result<()> {
-    let container = args.container.as_deref().unwrap_or("mediawiki");
+    let container = args.container.as_deref().unwrap_or(MEDIAWIKI_CONTAINER);
     let (program, cmd_args) = match args.command.clone().split_first() {
         Some((first, rest)) => (first.clone(), rest.to_vec()),
         None => ("bash".to_string(), vec![])
