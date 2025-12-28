@@ -1,9 +1,12 @@
 use clap::{CommandFactory, Parser, Subcommand};
 use console::Term;
 use crate::config::{load_mwutil_config, MWUtilConfig};
+use crate::modules::bash::BashArgs;
 
 mod config;
 mod modules;
+mod utils;
+mod exec;
 
 #[derive(Parser)]
 #[command(version, about)]
@@ -18,7 +21,9 @@ struct Cli {
 #[derive(Subcommand)]
 enum Modules {
     /// Adds the Gerrit SSH key to the SSH agent
-    AddGerritSSHKey
+    AddGerritSSHKey,
+    /// Starts a bash shell in a container
+    Bash(BashArgs),
 }
 
 fn main() -> anyhow::Result<()> {
@@ -26,11 +31,13 @@ fn main() -> anyhow::Result<()> {
 
     let cli = Cli::parse();
 
-    let config = load_mwutil_config(cli.debug).unwrap();
+    let config = load_mwutil_config(cli.debug);
 
     let term = Term::stdout();
+    // TODO don't unwrap config
     match cli.module {
-        Modules::AddGerritSSHKey => modules::add_gerrit_ssh_key::execute(config)?,
+        Modules::AddGerritSSHKey => modules::add_gerrit_ssh_key::execute(config.unwrap())?,
+        Modules::Bash(args) => modules::bash::execute(args)?,
     }
 
     Ok(())
