@@ -5,3 +5,4 @@ pub(crate) mod composer;
 pub(crate) mod run;
 pub(crate) mod up;
 pub(crate) mod down;
+pub(crate) mod recreate;

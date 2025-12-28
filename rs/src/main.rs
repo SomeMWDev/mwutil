@@ -3,6 +3,7 @@ use crate::config::{load_mwutil_config, MWUtilConfig};
 use crate::modules::bash::BashArgs;
 use crate::modules::clone::CloneArgs;
 use crate::modules::composer::ComposerArgs;
+use crate::modules::recreate::RecreateArgs;
 use crate::modules::run::RunArgs;
 
 mod config;
@@ -34,6 +35,8 @@ pub enum Modules {
     Composer(ComposerArgs),
     /// Stops all containers
     Down,
+    /// Recreates containers
+    Recreate(RecreateArgs),
     /// Runs a maintenance script
     Run(RunArgs),
     /// Starts all containers
@@ -62,6 +65,7 @@ pub fn run_module(module: Modules, config: Option<&MWUtilConfig>) -> anyhow::Res
         Modules::Clone(args) => modules::clone::execute(config, args)?,
         Modules::Composer(args) => modules::composer::execute(config, args)?,
         Modules::Down => modules::down::execute(config)?,
+        Modules::Recreate(args) => modules::recreate::execute(config, args)?,
         Modules::Run(args) => modules::run::execute(config, args)?,
         Modules::Update => modules::run::execute(config, RunArgs {
             script: "update".into(),
