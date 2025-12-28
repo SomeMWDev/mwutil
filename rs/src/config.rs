@@ -95,6 +95,8 @@ pub fn load_mwutil_config(debug: bool) -> Result<MWUtilConfig, LoadMWUtilConfigE
         )
     }
 
+    // TODO we probably need to hardcode this instead and no longer load it from JSON
+    // since we use hardcoded paths in autocompletion code to improve performance
     let config_dir = get_dir(&json_data, &base_dir, "configdir", "config");
 
     load_env(&config_dir);

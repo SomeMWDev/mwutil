@@ -1,6 +1,7 @@
 use std::fmt::Display;
 use std::str::FromStr;
 use clap::ValueEnum;
+use regex::{Regex};
 
 #[derive(Clone, Debug, PartialEq, ValueEnum)]
 pub enum RepoType {
@@ -60,5 +61,34 @@ impl Display for CloneMethod {
             CloneMethod::Ssh => write!(f, "ssh"),
             CloneMethod::Https => write!(f, "https"),
         }
+    }
+}
+
+#[derive(Debug)]
+pub struct MWVersion {
+    pub major: u8,
+    pub minor: u8,
+    pub patch: u8,
+    pub suffix: Option<String>,
+}
+
+impl MWVersion {
+    pub fn parse(string: &str) -> Option<Self> {
+        let re = Regex::new(r"(\d+)\.(\d+)\.(\d+)(?:-([a-zA-Z0-9]+))?")
+            .unwrap();
+
+        let captures = re.captures(string)?;
+
+        let major: u8 = captures.get(1)?.as_str().parse().ok()?;
+        let minor: u8 = captures.get(2)?.as_str().parse().ok()?;
+        let patch: u8 = captures.get(3)?.as_str().parse().ok()?;
+        let suffix: Option<String> = captures.get(4).map(|m| m.as_str().to_string());
+
+        Some(Self {
+            major,
+            minor,
+            patch,
+            suffix
+        })
     }
 }
