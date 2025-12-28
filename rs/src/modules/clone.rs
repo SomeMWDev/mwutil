@@ -44,11 +44,11 @@ pub struct CloneArgs {
 }
 
 pub fn execute(config: &MWUtilConfig, args: CloneArgs) -> anyhow::Result<()> {
-    let repo_data = get_repo_data(&config, &args.repo_type, args.repo_origin, args.repo, args.method);
+    let repo_data = get_repo_data(config, &args.repo_type, args.repo_origin, args.repo, args.method);
     let name = args.name.unwrap_or(repo_data.0);
     let url = repo_data.1;
-    let target_folder = config.base_dir.join(&args.repo_type.get_plural_name());
-    let (status, stdout, stderr) = clone(&url, &name, &target_folder, args.shallow, args.branch.as_ref());
+    let target_folder = config.base_dir.join(args.repo_type.get_plural_name());
+    let (status, _stdout, stderr) = clone(&url, &name, &target_folder, args.shallow, args.branch.as_ref());
     println!("Git clone exited with status: {}", status);
     if status.into_raw() == 128 {
         if stderr.contains("already exists and is not an empty directory") {
@@ -66,10 +66,10 @@ pub fn execute(config: &MWUtilConfig, args: CloneArgs) -> anyhow::Result<()> {
 
     // TODO run setup-gerrit/setup-github
     if args.composer {
-        composer::execute(ComposerArgs::default())?;
+        composer::execute(config, ComposerArgs::default())?;
     }
     if args.repo_type == RepoType::Extension {
-        run_module(Modules::Update, Some(&config))?;
+        run_module(Modules::Update, Some(config))?;
     }
 
     Ok(())

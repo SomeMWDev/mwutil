@@ -1,5 +1,4 @@
 use clap::{arg, CommandFactory, Parser, Subcommand};
-use console::Term;
 use crate::config::{load_mwutil_config, MWUtilConfig};
 use crate::modules::bash::BashArgs;
 use crate::modules::clone::CloneArgs;
@@ -35,6 +34,8 @@ pub enum Modules {
     Composer(ComposerArgs),
     /// Runs a maintenance script
     Run(RunArgs),
+    /// Starts all containers
+    Up,
     /// Runs update.php
     Update,
 }
@@ -51,17 +52,19 @@ fn main() -> anyhow::Result<()> {
 }
 
 pub fn run_module(module: Modules, config: Option<&MWUtilConfig>) -> anyhow::Result<()> {
-    // TODO don't unwrap config
+    // TODO don't unwrap config - instead make it optional
+    let config = config.unwrap();
     match module {
-        Modules::AddGerritSSHKey => modules::add_gerrit_ssh_key::execute(config.unwrap())?,
-        Modules::Bash(args) => modules::bash::execute(args)?,
-        Modules::Clone(args) => modules::clone::execute(config.unwrap(), args)?,
-        Modules::Composer(args) => modules::composer::execute(args)?,
-        Modules::Run(args) => modules::run::execute(config.unwrap(), args)?,
-        Modules::Update => modules::run::execute(config.unwrap(), RunArgs {
+        Modules::AddGerritSSHKey => modules::add_gerrit_ssh_key::execute(config)?,
+        Modules::Bash(args) => modules::bash::execute(config, args)?,
+        Modules::Clone(args) => modules::clone::execute(config, args)?,
+        Modules::Composer(args) => modules::composer::execute(config, args)?,
+        Modules::Run(args) => modules::run::execute(config, args)?,
+        Modules::Update => modules::run::execute(config, RunArgs {
             script: "update".into(),
             extra_args: vec!["--quick".into()],
         })?,
+        Modules::Up => modules::up::execute(config)?,
     }
 
     Ok(())

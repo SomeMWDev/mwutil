@@ -1,6 +1,7 @@
 use std::path::Path;
 use std::process::Command;
 use clap::Args;
+use crate::config::MWUtilConfig;
 use crate::constants::MEDIAWIKI_CONTAINER;
 use crate::exec::ContainerSupport;
 
@@ -15,7 +16,7 @@ pub struct ComposerArgs {
     extra_args: Vec<String>,
 }
 
-pub fn execute(args: ComposerArgs) -> anyhow::Result<()> {
+pub fn execute(config: &MWUtilConfig, args: ComposerArgs) -> anyhow::Result<()> {
     let mut cmd = Command::new("composer");
 
     cmd.arg("update");
@@ -24,7 +25,7 @@ pub fn execute(args: ComposerArgs) -> anyhow::Result<()> {
         cmd.current_dir(Path::new(&workdir));
     };
 
-    cmd.in_container(MEDIAWIKI_CONTAINER, None)
+    cmd.in_container(config, MEDIAWIKI_CONTAINER, None)
         .status()
         .ok();
 

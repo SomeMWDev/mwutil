@@ -36,7 +36,7 @@ pub fn execute(config: &MWUtilConfig, args: RunArgs) -> anyhow::Result<()> {
     }
     cmd.args(args.extra_args);
 
-    cmd.in_container(MEDIAWIKI_CONTAINER, None)
+    cmd.in_container(config, MEDIAWIKI_CONTAINER, None)
         .status()
         .ok();
     Ok(())

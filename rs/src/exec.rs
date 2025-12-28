@@ -1,23 +1,22 @@
 use std::io::{BufRead, BufReader};
 use std::process::{Command, ExitStatus, Stdio};
 use std::thread;
+use crate::config::MWUtilConfig;
 
 pub trait ContainerSupport {
-    fn in_container(self, container: &str, exec_options: Option<Vec<String>>) -> Self;
+    fn in_container(self, config: &MWUtilConfig, container: &str, exec_options: Option<Vec<String>>) -> Self;
 }
 
 impl ContainerSupport for Command {
 
     fn in_container(
         self,
+        config: &MWUtilConfig,
         container: &str,
         exec_options: Option<Vec<String>>
     ) -> Self {
-        let mut docker_cmd = Command::new("docker");
+        let mut docker_cmd = create_docker_compose_command(config);
         let mut cmd_args: Vec<String> = vec![
-            "compose".into(),
-            "--env-file".into(),
-            "config/.env".into(),
             "exec".into(),
         ];
         if let Some(workdir) = self.get_current_dir() {
@@ -82,4 +81,11 @@ impl CommandExt for Command {
 
         Ok((status, stdout_output, stderr_output))
     }
+}
+
+pub fn create_docker_compose_command(config: &MWUtilConfig) -> Command {
+    let mut cmd = Command::new("docker");
+    cmd.args(["compose", "--env-file", "config/.env"]);
+    cmd.current_dir(config.base_dir.clone());
+    cmd
 }

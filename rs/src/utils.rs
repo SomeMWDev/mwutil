@@ -1,13 +1,15 @@
 use std::fs;
-use std::process::Command;
 use clap_complete::CompletionCandidate;
 use regex::Regex;
-use crate::config::MWUtilConfig;
+use crate::config::{load_mwutil_config, MWUtilConfig};
+use crate::exec::create_docker_compose_command;
 use crate::types::MWVersion;
 
 pub fn container_completer(_current: &std::ffi::OsStr) -> Vec<CompletionCandidate> {
-    Command::new("docker")
-        .args(["compose", "--env-file", "config/.env", "ps", "--services"])
+    let config = load_mwutil_config(false)
+        .expect("Failed to load config!");
+    create_docker_compose_command(&config)
+        .args(["ps", "--services"])
         .output()
         .ok()
         .filter(|out| out.status.success())

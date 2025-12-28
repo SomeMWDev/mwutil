@@ -3,6 +3,7 @@ use std::process::Command;
 use crate::utils::container_completer;
 use clap_complete::{ArgValueCompleter};
 use clap::{Args};
+use crate::config::MWUtilConfig;
 use crate::constants::MEDIAWIKI_CONTAINER;
 use crate::exec::ContainerSupport;
 
@@ -24,7 +25,7 @@ pub struct BashArgs {
     command: Vec<String>,
 }
 
-pub fn execute(args: BashArgs) -> anyhow::Result<()> {
+pub fn execute(config: &MWUtilConfig, args: BashArgs) -> anyhow::Result<()> {
     let container = args.container.as_deref().unwrap_or(MEDIAWIKI_CONTAINER);
     let (program, cmd_args) = match args.command.clone().split_first() {
         Some((first, rest)) => (first.clone(), rest.to_vec()),
@@ -42,7 +43,7 @@ pub fn execute(args: BashArgs) -> anyhow::Result<()> {
         exec_options.push("root".into());
     }
 
-    cmd.in_container(container, Some(exec_options))
+    cmd.in_container(config, container, Some(exec_options))
         .status()
         .ok();
 
