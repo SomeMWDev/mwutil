@@ -3,7 +3,6 @@ use std::process::Command;
 use crate::utils::container_completer;
 use clap_complete::{ArgValueCompleter};
 use clap::{Args};
-use crate::config::MWUtilConfig;
 use crate::exec::ContainerSupport;
 
 #[derive(Args)]

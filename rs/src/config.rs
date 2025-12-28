@@ -1,11 +1,10 @@
 use std::{env, fs};
 use std::path::{PathBuf};
 use std::str::FromStr;
-use serde::Deserialize;
 
 const CONFIG_FILE_NAME: &str = ".mwutil.json";
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug)]
 pub enum DBType {
     Mysql,
     Mariadb,
@@ -58,7 +57,7 @@ impl DBType {
     }
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug)]
 pub struct MWUtilConfig {
     pub base_dir: PathBuf,
     pub config_dir: PathBuf,
@@ -70,6 +69,7 @@ pub struct MWUtilConfig {
     pub mw_branch: String,
 
     pub gerrit_ssh_key: Option<String>,
+    pub gerrit_username: Option<String>,
 
     pub debug: bool,
 }
@@ -118,6 +118,7 @@ pub fn load_mwutil_config(debug: bool) -> Result<MWUtilConfig, LoadMWUtilConfigE
         mw_branch,
 
         gerrit_ssh_key: env::var("GERRIT_SSH_KEY").ok(),
+        gerrit_username: env::var("GERRIT_USERNAME").ok(),
 
         debug,
     })

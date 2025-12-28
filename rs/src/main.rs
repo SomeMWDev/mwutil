@@ -1,12 +1,14 @@
 use clap::{CommandFactory, Parser, Subcommand};
 use console::Term;
-use crate::config::{load_mwutil_config, MWUtilConfig};
+use crate::config::load_mwutil_config;
 use crate::modules::bash::BashArgs;
+use crate::modules::clone::CloneArgs;
 
 mod config;
 mod modules;
 mod utils;
 mod exec;
+mod types;
 
 #[derive(Parser)]
 #[command(version, about)]
@@ -24,6 +26,8 @@ enum Modules {
     AddGerritSSHKey,
     /// Starts a bash shell in a container
     Bash(BashArgs),
+    /// Clones a repository from GitHub or Gerrit
+    Clone(CloneArgs),
 }
 
 fn main() -> anyhow::Result<()> {
@@ -38,6 +42,7 @@ fn main() -> anyhow::Result<()> {
     match cli.module {
         Modules::AddGerritSSHKey => modules::add_gerrit_ssh_key::execute(config.unwrap())?,
         Modules::Bash(args) => modules::bash::execute(args)?,
+        Modules::Clone(args) => modules::clone::execute(config.unwrap(), args)?,
     }
 
     Ok(())

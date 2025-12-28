@@ -1,4 +1,6 @@
-use std::process::Command;
+use std::io::{BufRead, BufReader};
+use std::process::{Command, ExitStatus, Stdio};
+use std::thread;
 
 pub trait ContainerSupport {
     fn in_container(self, container: &str, exec_options: Option<Vec<String>>) -> Self;
@@ -34,4 +36,50 @@ impl ContainerSupport for Command {
         docker_cmd
     }
 
+}
+
+pub trait CommandExt {
+    fn live_output(&mut self) -> std::io::Result<(ExitStatus, String, String)>;
+}
+
+impl CommandExt for Command {
+    fn live_output(&mut self) -> std::io::Result<(ExitStatus, String, String)> {
+        self.stdout(Stdio::piped());
+        self.stderr(Stdio::piped());
+
+        let mut child = self.spawn()?;
+
+        let stdout = child.stdout.take().unwrap();
+        let stderr = child.stderr.take().unwrap();
+
+        let stdout_handle = thread::spawn(move || {
+            let reader = BufReader::new(stdout);
+            let mut collected = String::new();
+            for line in reader.lines() {
+                let line = line.unwrap();
+                println!("{}", line);
+                collected.push_str(&line);
+                collected.push('\n');
+            }
+            collected
+        });
+
+        let stderr_handle = thread::spawn(move || {
+            let reader = BufReader::new(stderr);
+            let mut collected = String::new();
+            for line in reader.lines() {
+                let line = line.unwrap();
+                eprintln!("{}", line);
+                collected.push_str(&line);
+                collected.push('\n');
+            }
+            collected
+        });
+
+        let status = child.wait()?;
+        let stdout_output = stdout_handle.join().unwrap();
+        let stderr_output = stderr_handle.join().unwrap();
+
+        Ok((status, stdout_output, stderr_output))
+    }
 }
