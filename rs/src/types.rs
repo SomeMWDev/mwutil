@@ -1,7 +1,7 @@
+use clap::ValueEnum;
+use regex::Regex;
 use std::fmt::{Display, Formatter};
 use std::str::FromStr;
-use clap::ValueEnum;
-use regex::{Regex};
 
 #[derive(Clone, Debug, PartialEq, ValueEnum)]
 pub enum RepoType {

@@ -1,15 +1,15 @@
+use crate::config::MWUtilConfig;
+use crate::exec::CommandExt;
+use crate::modules::composer::ComposerArgs;
+use crate::modules::pull::{PullArgs, PullRepoType};
+use crate::modules::{composer, pull, setup_gerrit, setup_github};
+use crate::types::{CloneMethod, RepoOrigin, RepoType};
+use crate::{run_module, Modules};
+use clap::Args;
+use regex::Regex;
 use std::os::unix::prelude::ExitStatusExt;
 use std::path::Path;
 use std::process::{Command, ExitStatus};
-use crate::config::MWUtilConfig;
-use clap::{Args};
-use regex::Regex;
-use crate::exec::CommandExt;
-use crate::modules::{composer, pull, setup_gerrit, setup_github};
-use crate::modules::composer::ComposerArgs;
-use crate::{run_module, Modules};
-use crate::modules::pull::{PullArgs, PullRepoType};
-use crate::types::{CloneMethod, RepoOrigin, RepoType};
 
 #[derive(Args)]
 pub struct CloneArgs {

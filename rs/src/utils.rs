@@ -1,12 +1,12 @@
-use std::fs;
-use std::path::PathBuf;
-use std::process::Command;
-use anyhow::anyhow;
-use clap_complete::CompletionCandidate;
-use regex::Regex;
 use crate::config::{load_mwutil_config, MWUtilConfig};
 use crate::exec::create_docker_compose_command;
 use crate::types::MWVersion;
+use anyhow::anyhow;
+use clap_complete::CompletionCandidate;
+use regex::Regex;
+use std::fs;
+use std::path::PathBuf;
+use std::process::Command;
 
 pub fn container_completer(_current: &std::ffi::OsStr) -> Vec<CompletionCandidate> {
     let config = load_mwutil_config(false)

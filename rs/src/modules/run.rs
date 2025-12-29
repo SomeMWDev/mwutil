@@ -1,13 +1,13 @@
-use clap_complete::ArgValueCompleter;
-use std::fs;
-use std::path::PathBuf;
-use std::process::Command;
-use clap::Args;
-use clap_complete::CompletionCandidate;
 use crate::config::{find_base_dir, MWUtilConfig};
 use crate::constants::MEDIAWIKI_CONTAINER;
 use crate::exec::ContainerSupport;
 use crate::utils::get_core_version;
+use clap::Args;
+use clap_complete::ArgValueCompleter;
+use clap_complete::CompletionCandidate;
+use std::fs;
+use std::path::PathBuf;
+use std::process::Command;
 
 #[derive(Args, Default)]
 pub struct RunArgs {

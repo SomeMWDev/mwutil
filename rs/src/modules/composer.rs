@@ -1,9 +1,9 @@
-use std::path::Path;
-use std::process::Command;
-use clap::Args;
 use crate::config::MWUtilConfig;
 use crate::constants::MEDIAWIKI_CONTAINER;
 use crate::exec::ContainerSupport;
+use clap::Args;
+use std::path::Path;
+use std::process::Command;
 
 #[derive(Args, Default)]
 pub struct ComposerArgs {

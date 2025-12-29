@@ -1,8 +1,8 @@
-use std::process::Command;
-use clap::{Args, Error};
-use clap::error::ErrorKind;
 use crate::config::MWUtilConfig;
 use crate::types::RepoType;
+use clap::error::ErrorKind;
+use clap::{Args, Error};
+use std::process::Command;
 
 // todo un-hardcode RepoType values here
 #[derive(Clone, Debug, PartialEq)]

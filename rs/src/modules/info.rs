@@ -1,6 +1,6 @@
-use std::fmt::{Display};
 use crate::config::MWUtilConfig;
 use crate::utils::get_core_version;
+use std::fmt::Display;
 
 pub fn execute(config: &MWUtilConfig) -> anyhow::Result<()> {
     print_section(

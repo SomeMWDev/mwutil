@@ -1,8 +1,8 @@
+use crate::config::MWUtilConfig;
+use anyhow::anyhow;
 use std::io::{BufRead, BufReader};
 use std::process::{Command, ExitStatus, Stdio};
 use std::thread;
-use anyhow::anyhow;
-use crate::config::MWUtilConfig;
 
 pub trait ContainerSupport {
     fn in_container(self, config: &MWUtilConfig, container: &str, exec_options: Option<&[String]>) -> Self;

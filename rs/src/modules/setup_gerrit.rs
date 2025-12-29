@@ -1,8 +1,8 @@
+use crate::config::MWUtilConfig;
+use crate::utils::set_git_config;
 use std::env;
 use std::path::PathBuf;
 use std::process::Command;
-use crate::config::MWUtilConfig;
-use crate::utils::set_git_config;
 
 pub fn execute(config: &MWUtilConfig, repo_folder: Option<PathBuf>) -> anyhow::Result<()> {
     // TODO fix unwrap

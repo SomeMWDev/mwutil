@@ -1,11 +1,11 @@
-use std::path::Path;
-use std::process::Command;
-use crate::utils::container_completer;
-use clap_complete::{ArgValueCompleter};
-use clap::{Args};
 use crate::config::MWUtilConfig;
 use crate::constants::MEDIAWIKI_CONTAINER;
 use crate::exec::ContainerSupport;
+use crate::utils::container_completer;
+use clap::Args;
+use clap_complete::ArgValueCompleter;
+use std::path::Path;
+use std::process::Command;
 
 #[derive(Args)]
 pub struct BashArgs {

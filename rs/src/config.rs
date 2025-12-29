@@ -1,8 +1,8 @@
-use std::{env, fs};
+use clap::ValueEnum;
 use std::fmt::Display;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
-use clap::ValueEnum;
+use std::{env, fs};
 
 const CONFIG_FILE_NAME: &str = ".mwutil.json";
 

@@ -1,4 +1,3 @@
-use clap::{CommandFactory, Parser, Subcommand};
 use crate::config::{load_mwutil_config, MWUtilConfig};
 use crate::modules::bash::BashArgs;
 use crate::modules::clone::CloneArgs;
@@ -8,6 +7,7 @@ use crate::modules::pull::PullArgs;
 use crate::modules::recreate::RecreateArgs;
 use crate::modules::run::RunArgs;
 use crate::modules::sql::SqlArgs;
+use clap::{CommandFactory, Parser, Subcommand};
 
 mod config;
 mod modules;
