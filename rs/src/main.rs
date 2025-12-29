@@ -1,4 +1,4 @@
-use clap::{arg, CommandFactory, Parser, Subcommand};
+use clap::{CommandFactory, Parser, Subcommand};
 use crate::config::{load_mwutil_config, MWUtilConfig};
 use crate::modules::bash::BashArgs;
 use crate::modules::clone::CloneArgs;
@@ -37,6 +37,8 @@ pub enum Modules {
     Composer(ComposerArgs),
     /// Stops all containers
     Down,
+    /// Prints info about the environment
+    Info,
     /// Pulls a local repository
     Pull(PullArgs),
     /// Recreates containers
@@ -77,6 +79,7 @@ pub fn run_module(module: Modules, config: Option<&MWUtilConfig>) -> anyhow::Res
         Modules::Clone(args) => modules::clone::execute(config, args)?,
         Modules::Composer(args) => modules::composer::execute(config, args)?,
         Modules::Down => modules::down::execute(config)?,
+        Modules::Info => modules::info::execute(config)?,
         Modules::SetupGerrit => modules::setup_gerrit::execute(config, None)?,
         Modules::SetupGithub => modules::setup_github::execute(config, None)?,
         Modules::Shell => modules::run::execute(config, RunArgs {

@@ -1,10 +1,11 @@
 use std::{env, fs};
+use std::fmt::Display;
 use std::path::{PathBuf};
 use std::str::FromStr;
 
 const CONFIG_FILE_NAME: &str = ".mwutil.json";
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub enum DBType {
     Mysql,
     Mariadb,
@@ -24,6 +25,15 @@ impl FromStr for DBType {
         } else {
             Err(ParseDBTypeError)
         }
+    }
+}
+
+impl Display for DBType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", match self {
+            DBType::Mysql => "MySQL",
+            DBType::Mariadb => "MariaDB",
+        })
     }
 }
 
@@ -57,7 +67,7 @@ impl DBType {
     }
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct MWUtilConfig {
     pub base_dir: PathBuf,
     pub config_dir: PathBuf,

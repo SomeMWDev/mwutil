@@ -1,4 +1,4 @@
-use std::fmt::Display;
+use std::fmt::{Display, Formatter};
 use std::str::FromStr;
 use clap::ValueEnum;
 use regex::{Regex};
@@ -90,5 +90,15 @@ impl MWVersion {
             patch,
             suffix
         })
+    }
+}
+
+impl Display for MWVersion {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let suffix = self.suffix
+            .as_deref()
+            .map(|s| format!("-{}", s))
+            .unwrap_or_default();
+        write!(f, "{}.{}.{}{}", self.major, self.minor, self.patch, suffix)
     }
 }
