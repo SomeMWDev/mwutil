@@ -10,8 +10,10 @@ pub fn execute(config: &MWUtilConfig) -> anyhow::Result<()> {
             ("Config dir", &config.config_dir.to_str().unwrap().to_string()),
             ("Core dir", &config.core_dir.to_str().unwrap().to_string()),
             ("Dump dir", &config.dump_dir.to_str().unwrap().to_string()),
+            ("Profiles", &config.compose_profiles.join(", ")),
         ]
     );
+    println!();
 
     let core_version = get_core_version(config);
     let core_version_display = core_version
