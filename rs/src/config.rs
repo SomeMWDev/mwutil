@@ -1,8 +1,9 @@
 use clap::ValueEnum;
 use std::fmt::Display;
 use std::path::{Path, PathBuf};
-use std::str::FromStr;
 use std::{env, fs};
+use anyhow::{Context};
+use regex::Regex;
 
 const CONFIG_FILE_NAME: &str = ".mwutil.json";
 
@@ -21,6 +22,10 @@ impl DBType {
         } else {
             None
         }
+    }
+
+    pub fn all_values() -> Vec<Self> {
+        vec![DBType::Mariadb, DBType::Mysql]
     }
 }
 
@@ -83,6 +88,8 @@ pub struct MWUtilConfig {
     pub git_email: Option<String>,
     pub git_username: Option<String>,
 
+    pub compose_profiles: Vec<String>,
+
     pub debug: bool,
 }
 
@@ -121,6 +128,13 @@ pub fn load_mwutil_config(debug: bool) -> Result<MWUtilConfig, LoadMWUtilConfigE
     let mw_branch = env::var("MW_BRANCH")
         .unwrap_or(String::from("master"));
 
+    let compose_profiles: Vec<String> = env::var("COMPOSE_PROFILES")
+        .context("COMPOSER_PROFILES env variable is required")
+        .unwrap()
+        .split(",")
+        .map(String::from)
+        .collect();
+
     Ok(MWUtilConfig {
         config_dir,
         core_dir: get_dir(&json_data, &base_dir, "coredir", "core"),
@@ -140,6 +154,8 @@ pub fn load_mwutil_config(debug: bool) -> Result<MWUtilConfig, LoadMWUtilConfigE
 
         git_email: env::var("GIT_EMAIL").ok(),
         git_username: env::var("GIT_USERNAME").ok(),
+
+        compose_profiles,
 
         debug,
     })
@@ -166,4 +182,18 @@ pub fn find_base_dir() -> Option<PathBuf> {
     }
 
     None
+}
+
+pub fn update_env_var(config: &MWUtilConfig, var: &str, val: &str) -> anyhow::Result<()> {
+    let env_file = config.config_dir.join(".env");
+    let contents = fs::read_to_string(&env_file)?;
+
+    let re = Regex::new(&format!(r"(?m)^{}=.*$", regex::escape(var)))?;
+    let output = re.replace_all(contents.as_str(), format!("{}={}", var, val));
+    fs::write(env_file, output.as_ref())?;
+    Ok(())
+}
+
+pub fn update_profiles(config: &MWUtilConfig, profiles: &[String]) -> anyhow::Result<()> {
+    update_env_var(config, "COMPOSE_PROFILES", profiles.join(",").as_str())
 }

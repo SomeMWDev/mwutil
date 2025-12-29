@@ -7,6 +7,9 @@ use regex::Regex;
 use std::fs;
 use std::path::PathBuf;
 use std::process::Command;
+use std::time::Duration;
+use console::style;
+use indicatif::ProgressBar;
 
 pub fn container_completer(_current: &std::ffi::OsStr) -> Vec<CompletionCandidate> {
     let config = load_mwutil_config(false)
@@ -45,5 +48,43 @@ pub fn set_git_config(option: &str, value: &str, repo_folder: &PathBuf) -> anyho
         .status()
         .map_err(|e| anyhow!("Failed to set git option: {}", e))?;
     Ok(())
+}
+
+pub struct SpinnerSequence {
+    cur: u8,
+    max: u8,
+    last: Option<ProgressBar>,
+}
+
+impl SpinnerSequence {
+
+    pub fn next(&mut self, text: &str) {
+        if let Some(spinner) = self.last.as_ref() {
+            spinner.finish();
+        }
+        self.cur += 1;
+
+        println!("{} {text}...", style(format!("[{}/{}]", self.cur, self.max)).bold().dim());
+
+        let spinner = ProgressBar::new_spinner();
+        spinner.enable_steady_tick(Duration::from_millis(100));
+    }
+
+    pub fn finish(self) {
+        if let Some(spinner) = self.last.as_ref() {
+            spinner.finish();
+        }
+    }
+
+    pub fn new(max: u8, initial_text: &str) -> Self {
+        let mut seq = Self {
+            cur: 0,
+            max,
+            last: None,
+        };
+        seq.next(initial_text);
+        seq
+    }
+
 }
 

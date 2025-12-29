@@ -1,22 +1,25 @@
-use std::fmt::format;
-use crate::config::{load_mwutil_config, DBType, MWUtilConfig};
+use crate::config::{load_mwutil_config, update_env_var, update_profiles, DBType, MWUtilConfig};
 use crate::constants::MEDIAWIKI_CONTAINER;
 use crate::exec::{create_db_command, run_sql_query, DbCommandDatabase, DbCommandType, DbCommandUser};
-use crate::modules::recreate;
+use crate::modules::{down, recreate};
 use crate::modules::recreate::RecreateArgs;
+use crate::utils::SpinnerSequence;
 use anyhow::{anyhow, Context};
 use clap::{Args, Subcommand};
 use clap_complete::ArgValueCompleter;
 use clap_complete::CompletionCandidate;
 use console::style;
-use indicatif::ProgressBar;
+use dialoguer::Confirm;
+use rand::distr::Alphanumeric;
+use rand::Rng;
 use regex::Regex;
 use std::fs;
 use std::io::Write;
 use std::path::PathBuf;
 use std::process::Stdio;
+use std::thread::sleep;
 use std::time::Duration;
-use dialoguer::Confirm;
+use crate::modules::down::DownArgs;
 
 const ALLOWED_DUMP_REGEX: &str = r"^[A-Za-z0-9\-._]+$";
 
@@ -87,15 +90,13 @@ pub fn execute_dump_command(config: &MWUtilConfig, args: DumpArgs)-> anyhow::Res
 
 pub fn create_dump(config: &MWUtilConfig, args: DumpSubArgs) -> anyhow::Result<()> {
     let dump_file = get_dump(config, &args.name, Existence::MustNotExist)?;
-    let steps = 2;
 
-    let spinner = create_spinner("Dumping database...", 1, steps);
+    let mut spinner = SpinnerSequence::new(2, "Dumping database");
     let out = create_db_command(config, DbCommandType::Dump, DbCommandUser::Mw, None, None, None)?
         .output()
         .context("Failed to dump database!")?;
-    spinner.finish();
 
-    let spinner = create_spinner("Writing dump to file...", 2, steps);
+    spinner.next("Writing dump to file");
     fs::write(&dump_file, out.stdout)
         .context("Failed to write dump to file!")?;
     spinner.finish();
@@ -147,20 +148,18 @@ pub fn import_dump(config: &MWUtilConfig, args: DumpSubArgs) -> anyhow::Result<(
     let dump_file = get_dump(config, &args.name, Existence::MustExist)?;
     let bytes = fs::read(dump_file).context("Failed to read dump file")?;
 
-    let steps = 4;
-    let spinner = create_spinner("Dropping database", 1, steps);
+    let mut spinner = SpinnerSequence::new(4, "Dropping database");
     run_sql_query(
         config,
         DbCommandUser::Mw,
         Some(DbCommandDatabase::None),
         format!(
-            "DROP DATABASE `{}`;",
+            "DROP DATABASE IF EXISTS `{}`;",
             config.mw_database.clone().ok_or_else(|| anyhow!("MW database not set!"))?
         ).as_str(),
     ).context("Failed to drop database")?;
-    spinner.finish();
 
-    let spinner = create_spinner("Creating database", 2, steps);
+    spinner.next("Creating database");
     run_sql_query(
         config,
         DbCommandUser::Mw,
@@ -170,9 +169,8 @@ pub fn import_dump(config: &MWUtilConfig, args: DumpSubArgs) -> anyhow::Result<(
             config.mw_database.clone().ok_or_else(|| anyhow!("MW database not set!"))?
         ).as_str()
     ).context("Failed to create database")?;
-    spinner.finish();
 
-    let spinner = create_spinner("Importing dump", 3, steps);
+    spinner.next("Importing dump");
     let mut process = create_db_command(
         config,
         DbCommandType::Query,
@@ -186,9 +184,8 @@ pub fn import_dump(config: &MWUtilConfig, args: DumpSubArgs) -> anyhow::Result<(
         .context("Failed to spawn DB process")?;
     process.stdin.as_mut().ok_or(anyhow!("Failed to copy process stdin!"))?.write_all(&bytes)?;
     process.wait()?;
-    spinner.finish();
 
-    let spinner = create_spinner("Restarting MW container", 4, steps);
+    spinner.next("Restarting MW container");
     recreate::execute(config, RecreateArgs {
         container: Some(String::from(MEDIAWIKI_CONTAINER))
     })?;
@@ -212,25 +209,55 @@ pub fn switch(config: &MWUtilConfig, args: SwitchArgs) -> anyhow::Result<()> {
         println!("Already using {}!", style(args.to).red());
         return Ok(());
     }
-    let steps = 4;
-    let spinner = create_spinner("Creating dump...", 1, steps);
+
+    let mut spinner = SpinnerSequence::new(7, "Creating dump");
+
+    let dump_name: String = rand::rng()
+        .sample_iter(&Alphanumeric)
+        .take(16)
+        .map(char::from)
+        .collect();
+    create_dump(config, DumpSubArgs { name: dump_name.clone() })?;
+
+    spinner.next("Updating environment variables");
+    let mut profiles = config.compose_profiles.clone();
+    profiles.retain(|p| p != config.db_type.get_container_name());
+    profiles.push(args.to.get_container_name().into());
+    update_profiles(config, &profiles)?;
+    update_env_var(config, "MWC_DB_TYPE", args.to.get_container_name())?;
+    update_env_var(config, "MWC_DB_HOST", args.to.get_container_name())?;
+    let mut new_config = config.clone();
+    new_config.db_type = args.to.clone();
+    new_config.compose_profiles = profiles;
+
+    spinner.next("Stopping old container");
+    down::execute(&new_config, DownArgs {
+        container: Some(config.db_type.get_container_name().into())
+    })?;
+
+    spinner.next("Starting new container");
+    // TODO use up instead?
+    recreate::execute(&new_config, RecreateArgs {
+        container: Some(args.to.get_container_name().into())
+    })?;
+
+    spinner.next("Waiting for the database to be ready");
+    // TODO suboptimal
+    sleep(Duration::from_secs(10));
+
+    spinner.next("Importing dump");
+    import_dump(&new_config, DumpSubArgs {
+        name: dump_name.clone(),
+    })?;
+
+    spinner.next("Deleting dump");
+    delete_dump(&new_config, DumpSubArgs {
+        name: dump_name.clone(),
+    })?;
 
     spinner.finish();
 
-
     Ok(())
-}
-
-fn create_spinner(
-    text: &str,
-    step: u8,
-    max: u8,
-) -> ProgressBar {
-    println!("{} {text}...", style(format!("[{step}/{max}]")).bold().dim());
-
-    let spinner = ProgressBar::new_spinner();
-    spinner.enable_steady_tick(Duration::from_millis(100));
-    spinner
 }
 
 fn get_all_dump_files(config: &MWUtilConfig) -> Option<impl Iterator<Item = PathBuf>> {
