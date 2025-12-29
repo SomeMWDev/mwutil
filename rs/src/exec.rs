@@ -86,7 +86,7 @@ impl CommandExt for Command {
 
 pub fn create_docker_compose_command(config: &MWUtilConfig) -> Command {
     let mut cmd = Command::new("docker");
-    cmd.args(["compose", "--env-file", "config/.env"]);
+    cmd.args(["compose", "--env-file", "config/.env", "--progress", "plain"]);
     cmd.current_dir(config.base_dir.clone());
     cmd
 }
