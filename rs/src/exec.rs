@@ -3,9 +3,10 @@ use anyhow::anyhow;
 use std::io::{BufRead, BufReader};
 use std::process::{Command, ExitStatus, Stdio};
 use std::thread;
+use crate::types::Container;
 
 pub trait ContainerSupport {
-    fn in_container(self, config: &MWUtilConfig, container: &str, exec_options: Option<&[String]>) -> Self;
+    fn in_container(self, config: &MWUtilConfig, container: Container, exec_options: Option<&[String]>) -> Self;
 }
 
 impl ContainerSupport for Command {
@@ -13,7 +14,7 @@ impl ContainerSupport for Command {
     fn in_container(
         self,
         config: &MWUtilConfig,
-        container: &str,
+        container: Container,
         exec_options: Option<&[String]>
     ) -> Self {
         let mut docker_cmd = create_docker_compose_command(config);
@@ -22,12 +23,16 @@ impl ContainerSupport for Command {
         ];
         if let Some(workdir) = self.get_current_dir() {
             cmd_args.push("-w".into());
-            // TODO fix unwrap
-            cmd_args.push(workdir.to_str().unwrap().to_string());
+            if workdir.is_relative() {
+                cmd_args.push(config.mw_install_path.clone() + "/" + workdir.to_str().unwrap())
+            } else {
+                // TODO fix unwrap
+                cmd_args.push(workdir.to_str().unwrap().to_string());
+            }
         }
         cmd_args.extend_from_slice(exec_options.unwrap_or_default());
         cmd_args.extend([
-            container.into(),
+            container.to_string(),
             self.get_program().to_string_lossy().into_owned()
         ]);
         cmd_args.extend(self.get_args().map(|s| s.to_string_lossy().into_owned()));
@@ -145,7 +150,7 @@ pub fn create_db_command(
         cmd.args(args);
     }
 
-    Ok(cmd.in_container(config, config.db_type.get_container_name(), exec_options))
+    Ok(cmd.in_container(config, Container::Database(config.db_type.clone()), exec_options))
 }
 
 pub fn run_sql_query(

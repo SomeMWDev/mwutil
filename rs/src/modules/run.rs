@@ -8,6 +8,7 @@ use clap_complete::CompletionCandidate;
 use std::fs;
 use std::path::PathBuf;
 use std::process::Command;
+use crate::types::Container;
 
 #[derive(Args, Default)]
 pub struct RunArgs {
@@ -36,7 +37,7 @@ pub fn execute(config: &MWUtilConfig, args: RunArgs) -> anyhow::Result<()> {
     }
     cmd.args(args.extra_args);
 
-    cmd.in_container(config, MEDIAWIKI_CONTAINER, None)
+    cmd.in_container(config, Container::MediaWiki, None)
         .status()
         .ok();
     Ok(())

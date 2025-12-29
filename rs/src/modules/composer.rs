@@ -1,19 +1,19 @@
 use crate::config::MWUtilConfig;
-use crate::constants::MEDIAWIKI_CONTAINER;
 use crate::exec::ContainerSupport;
 use clap::Args;
 use std::path::Path;
 use std::process::Command;
+use crate::types::Container;
 
 #[derive(Args, Default)]
 pub struct ComposerArgs {
     /// The folder in the container to execute the command in
     #[arg(short, long)]
-    folder: Option<String>,
+    pub folder: Option<String>,
 
     /// Additional arguments to pass to composer
     #[arg(trailing_var_arg = true)]
-    extra_args: Vec<String>,
+    pub extra_args: Vec<String>,
 }
 
 pub fn execute(config: &MWUtilConfig, args: ComposerArgs) -> anyhow::Result<()> {
@@ -25,7 +25,7 @@ pub fn execute(config: &MWUtilConfig, args: ComposerArgs) -> anyhow::Result<()> 
         cmd.current_dir(Path::new(&workdir));
     };
 
-    cmd.in_container(config, MEDIAWIKI_CONTAINER, None)
+    cmd.in_container(config, Container::MediaWiki, None)
         .status()
         .ok();
 

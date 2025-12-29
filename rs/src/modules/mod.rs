@@ -13,3 +13,5 @@ pub(crate) mod sql;
 pub(crate) mod info;
 pub(crate) mod db;
 pub(crate) mod opensearch;
+pub(crate) mod lint;
+pub(crate) mod npm;

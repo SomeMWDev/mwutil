@@ -2,6 +2,8 @@ use clap::ValueEnum;
 use regex::Regex;
 use std::fmt::{Display, Formatter};
 use std::str::FromStr;
+use crate::config::DBType;
+use crate::constants::{MEDIAWIKI_CONTAINER, OPENSEARCH_CONTAINER};
 
 #[derive(Clone, Debug, PartialEq, ValueEnum)]
 pub enum RepoType {
@@ -100,5 +102,23 @@ impl Display for MWVersion {
             .map(|s| format!("-{}", s))
             .unwrap_or_default();
         write!(f, "{}.{}.{}{}", self.major, self.minor, self.patch, suffix)
+    }
+}
+
+pub enum Container {
+    Database(DBType),
+    MediaWiki,
+    OpenSearch,
+    Other(String),
+}
+
+impl Display for Container {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.write_str(match self {
+            Container::Database(db_type) => db_type.get_container_name(),
+            Container::MediaWiki => MEDIAWIKI_CONTAINER,
+            Container::OpenSearch => OPENSEARCH_CONTAINER,
+            Container::Other(name) => name,
+        })
     }
 }

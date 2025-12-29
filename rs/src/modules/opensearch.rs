@@ -8,6 +8,7 @@ use crate::modules::{down, recreate, run};
 use crate::modules::down::DownArgs;
 use crate::modules::recreate::RecreateArgs;
 use crate::modules::run::RunArgs;
+use crate::types::Container;
 use crate::utils::SpinnerSequence;
 
 #[derive(Args)]
@@ -61,7 +62,7 @@ fn reset(config: &MWUtilConfig) -> anyhow::Result<()> {
     let mut spinner = SpinnerSequence::new(2, "Resetting index");
     let mut cmd = Command::new("curl");
     cmd.args(["-X", "DELETE", "localhost:9200/_all"]);
-    cmd.in_container(config, OPENSEARCH_CONTAINER, None)
+    cmd.in_container(config, Container::OpenSearch, None)
         .status()?;
 
     spinner.next("Re-indexing wiki pages");

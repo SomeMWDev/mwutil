@@ -6,6 +6,7 @@ use clap::Args;
 use clap_complete::ArgValueCompleter;
 use std::path::Path;
 use std::process::Command;
+use crate::types::Container;
 
 #[derive(Args)]
 pub struct BashArgs {
@@ -27,7 +28,10 @@ pub struct BashArgs {
 }
 
 pub fn execute(config: &MWUtilConfig, args: BashArgs) -> anyhow::Result<()> {
-    let container = args.container.as_deref().unwrap_or(MEDIAWIKI_CONTAINER);
+    let container = args.container
+        .clone()
+        .map(Container::Other)
+        .unwrap_or(Container::MediaWiki);
     let (program, cmd_args) = match args.command.clone().split_first() {
         Some((first, rest)) => (first.clone(), rest.to_vec()),
         None => ("bash".to_string(), vec![])

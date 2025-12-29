@@ -9,6 +9,8 @@ use crate::modules::run::RunArgs;
 use crate::modules::sql::SqlArgs;
 use clap::{CommandFactory, Parser, Subcommand};
 use crate::modules::down::DownArgs;
+use crate::modules::lint::LintArgs;
+use crate::modules::npm::NpmArgs;
 use crate::modules::opensearch::OpenSearchArgs;
 
 mod config;
@@ -44,6 +46,10 @@ pub enum Modules {
     Down(DownArgs),
     /// Prints info about the environment
     Info,
+    /// Runs a linter
+    Lint(LintArgs),
+    /// Runs npm install
+    Npm(NpmArgs),
     /// Allows managing the OpenSearch instance
     OpenSearch(OpenSearchArgs),
     /// Pulls a local repository
@@ -88,6 +94,8 @@ pub fn run_module(module: Modules, config: Option<&MWUtilConfig>) -> anyhow::Res
         Modules::Db(args) => modules::db::execute(config, args)?,
         Modules::Down(args) => modules::down::execute(config, args)?,
         Modules::Info => modules::info::execute(config)?,
+        Modules::Lint(args) => modules::lint::execute(config, args, true)?,
+        Modules::Npm(args) => modules::npm::execute(args)?,
         Modules::OpenSearch(args) => modules::opensearch::execute(config, args)?,
         Modules::Pull(args) => modules::pull::execute(config, args)?,
         Modules::Recreate(args) => modules::recreate::execute(config, args)?,
