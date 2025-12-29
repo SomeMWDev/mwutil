@@ -8,7 +8,7 @@ use crate::exec::create_docker_compose_command;
 pub struct RecreateArgs {
     /// The container to execute the command in
     #[arg(add = ArgValueCompleter::new(container_completer))]
-    container: Option<String>,
+    pub container: Option<String>,
 }
 pub fn execute(config: &MWUtilConfig, args: RecreateArgs) -> anyhow::Result<()> {
     let mut cmd = create_docker_compose_command(config);

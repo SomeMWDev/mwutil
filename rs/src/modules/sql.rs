@@ -1,8 +1,6 @@
-use std::process::Command;
-use anyhow::Context;
 use clap::Args;
 use crate::config::MWUtilConfig;
-use crate::exec::{create_db_command, ContainerSupport, DbCommandType, DbCommandUser};
+use crate::exec::{create_db_command, DbCommandType, DbCommandUser};
 use crate::modules::run;
 use crate::modules::run::RunArgs;
 
@@ -19,7 +17,7 @@ pub struct SqlArgs {
 
 pub fn execute(config: &MWUtilConfig, args: SqlArgs) -> anyhow::Result<()> {
     if args.root {
-        let status = create_db_command(config, DbCommandType::Query, DbCommandUser::Root)?
+        let status = create_db_command(config, DbCommandType::Query, DbCommandUser::Root, None, None, None)?
             .args(args.extra_args)
             .status()?;
 

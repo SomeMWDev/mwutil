@@ -1,4 +1,3 @@
-use std::fmt::format;
 use std::io::{BufRead, BufReader};
 use std::process::{Command, ExitStatus, Stdio};
 use std::thread;
@@ -6,7 +5,7 @@ use anyhow::anyhow;
 use crate::config::MWUtilConfig;
 
 pub trait ContainerSupport {
-    fn in_container(self, config: &MWUtilConfig, container: &str, exec_options: Option<Vec<String>>) -> Self;
+    fn in_container(self, config: &MWUtilConfig, container: &str, exec_options: Option<&[String]>) -> Self;
 }
 
 impl ContainerSupport for Command {
@@ -15,7 +14,7 @@ impl ContainerSupport for Command {
         self,
         config: &MWUtilConfig,
         container: &str,
-        exec_options: Option<Vec<String>>
+        exec_options: Option<&[String]>
     ) -> Self {
         let mut docker_cmd = create_docker_compose_command(config);
         let mut cmd_args: Vec<String> = vec![
@@ -26,7 +25,7 @@ impl ContainerSupport for Command {
             // TODO fix unwrap
             cmd_args.push(workdir.to_str().unwrap().to_string());
         }
-        cmd_args.extend(exec_options.unwrap_or_default());
+        cmd_args.extend_from_slice(exec_options.unwrap_or_default());
         cmd_args.extend([
             container.into(),
             self.get_program().to_string_lossy().into_owned()
@@ -93,7 +92,7 @@ pub fn create_docker_compose_command(config: &MWUtilConfig) -> Command {
 }
 
 pub enum DbCommandUser {
-    Default,
+    Mw,
     Root,
 }
 
@@ -102,23 +101,33 @@ pub enum DbCommandType {
     Query,
 }
 
+pub enum DbCommandDatabase<'a> {
+    Custom(&'a str),
+    None,
+    Mw,
+}
+
 pub fn create_db_command(
     config: &MWUtilConfig,
     cmd_type: DbCommandType,
-    user: DbCommandUser
+    user: DbCommandUser,
+    args: Option<&[&str]>,
+    exec_options: Option<&[String]>,
+    database: Option<DbCommandDatabase>,
 ) -> anyhow::Result<Command> {
     let mut cmd = Command::new(match cmd_type {
         DbCommandType::Dump => config.db_type.get_dump_command(),
         DbCommandType::Query => config.db_type.get_query_command(),
     });
 
-    let database = config.mw_database
-        .as_ref()
-        .ok_or_else(|| anyhow!("MediaWiki database name is not set in the configuration"))?;
-    cmd.arg(database);
+    match database.unwrap_or(DbCommandDatabase::Mw) {
+        DbCommandDatabase::Custom(name) => Some(name),
+        DbCommandDatabase::None => None,
+        DbCommandDatabase::Mw => config.mw_database.as_deref(),
+    }.map(|db|cmd.arg(db));
 
     match user {
-        DbCommandUser::Default => {
+        DbCommandUser::Mw => {
             cmd.args([
                 &format!("-u{}", config.db_user.clone().ok_or_else(|| anyhow!("DB user not set!"))?),
                 &format!("-p{}", config.db_password.clone().ok_or_else(|| anyhow!("DB password not set!"))?),
@@ -132,5 +141,20 @@ pub fn create_db_command(
         },
     }
 
-    Ok(cmd.in_container(config, config.db_type.get_container_name(), None))
+    if let Some(args) = args {
+        cmd.args(args);
+    }
+
+    Ok(cmd.in_container(config, config.db_type.get_container_name(), exec_options))
+}
+
+pub fn run_sql_query(
+    config: &MWUtilConfig,
+    user: DbCommandUser,
+    database: Option<DbCommandDatabase>,
+    query: &str,
+) -> anyhow::Result<ExitStatus> {
+    create_db_command(config, DbCommandType::Query, user, Some(&["-e", query]), None, database)?
+        .status()
+        .map_err(|x|anyhow!(x))
 }
