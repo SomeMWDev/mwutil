@@ -1,5 +1,4 @@
 use crate::config::{find_base_dir, MWUtilConfig};
-use crate::constants::MEDIAWIKI_CONTAINER;
 use crate::exec::ContainerSupport;
 use crate::utils::get_core_version;
 use clap::Args;

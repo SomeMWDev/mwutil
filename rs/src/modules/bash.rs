@@ -1,5 +1,4 @@
 use crate::config::MWUtilConfig;
-use crate::constants::MEDIAWIKI_CONTAINER;
 use crate::exec::ContainerSupport;
 use crate::utils::container_completer;
 use clap::Args;

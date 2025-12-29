@@ -130,7 +130,7 @@ pub fn delete_dump(config: &MWUtilConfig, args: DumpSubArgs) -> anyhow::Result<(
 
 pub fn delete_all_dumps(config: &MWUtilConfig) -> anyhow::Result<()> {
     let dump_files: Vec<PathBuf> = get_all_dump_files(config)
-        .ok_or(anyhow!("Failed to get all dump files!"))?
+        .ok_or_else(|| anyhow!("Failed to get all dump files!"))?
         .collect();
 
     let confirmation = Confirm::new()
@@ -187,7 +187,7 @@ pub fn import_dump(config: &MWUtilConfig, args: DumpSubArgs) -> anyhow::Result<(
         .stdin(Stdio::piped())
         .spawn()
         .context("Failed to spawn DB process")?;
-    process.stdin.as_mut().ok_or(anyhow!("Failed to copy process stdin!"))?.write_all(&bytes)?;
+    process.stdin.as_mut().ok_or_else(|| anyhow!("Failed to copy process stdin!"))?.write_all(&bytes)?;
     process.wait()?;
 
     spinner.next("Restarting MW container");
@@ -201,7 +201,7 @@ pub fn import_dump(config: &MWUtilConfig, args: DumpSubArgs) -> anyhow::Result<(
 
 pub fn list_dumps(config: &MWUtilConfig) -> anyhow::Result<()> {
     let dump_files = get_all_dump_files(config)
-        .ok_or(anyhow!("Failed to get all dump files!"))?;
+        .ok_or_else(|| anyhow!("Failed to get all dump files!"))?;
     for file in dump_files {
         println!("{}", file.file_stem().unwrap().to_str().unwrap());
     }
