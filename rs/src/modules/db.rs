@@ -76,7 +76,7 @@ pub fn execute_dump_command(config: &MWUtilConfig, args: DumpArgs)-> anyhow::Res
         DumpSubCommand::Create(create_args) => create_dump(config, create_args),
         DumpSubCommand::Delete(delete_args) => delete_dump(config, delete_args),
         DumpSubCommand::Import(import_args) => import_dump(config, import_args),
-        _ => Ok(()) // TODO implement
+        DumpSubCommand::List => list_dumps(config),
     }
 }
 
@@ -171,6 +171,16 @@ pub fn import_dump(config: &MWUtilConfig, args: DumpSubArgs) -> anyhow::Result<(
     Ok(())
 }
 
+pub fn list_dumps(config: &MWUtilConfig) -> anyhow::Result<()> {
+    let dump_files = get_all_dump_files(config)
+        .ok_or(anyhow!("Failed to get all dump files!"))?;
+    for file in dump_files {
+        println!("{}", file.file_stem().unwrap().to_str().unwrap());
+    }
+
+    Ok(())
+}
+
 pub fn switch(config: &MWUtilConfig, args: SwitchArgs) -> anyhow::Result<()> {
     if config.db_type == args.to {
         println!("Already using {}!", style(args.to).red());
@@ -197,22 +207,33 @@ fn create_spinner(
     spinner
 }
 
+fn get_all_dump_files(config: &MWUtilConfig) -> Option<impl Iterator<Item = PathBuf>> {
+    let Ok(files) = fs::read_dir(&config.dump_dir) else {
+        return None;
+    };
+    Some(
+        files.flatten()
+            .filter_map(|file| {
+                let path = file.path();
+                if path.is_file() && path.extension() == Some("sql".as_ref()) {
+                    Some(path)
+                } else {
+                    None
+                }
+            })
+    )
+}
+
 fn dump_completer(_current: &std::ffi::OsStr) -> Vec<CompletionCandidate> {
     let Ok(config) = load_mwutil_config(false) else {
         return vec![];
     };
-    let Ok(files) = fs::read_dir(config.dump_dir) else {
+    let Some(files) = get_all_dump_files(&config) else {
         return vec![];
     };
-    files.flatten()
-        .filter_map(|file| {
-            let path = file.path();
-            if path.is_file() && path.extension() == Some("sql".as_ref()) && let Some(name) = path.file_stem() {
-                Some(CompletionCandidate::new(name))
-            } else {
-                None
-            }
-        })
+    files
+        .map(|p| p.file_stem().map(|s| CompletionCandidate::new(s)))
+        .flatten()
         .collect()
 }
 
