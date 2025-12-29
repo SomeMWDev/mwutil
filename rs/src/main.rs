@@ -48,6 +48,8 @@ pub enum Modules {
     Info,
     /// Runs a linter
     Lint(LintArgs),
+    /// Lists the remotes of all local repos in the environment
+    ListRepoRemotes,
     /// Runs npm install
     Npm(NpmArgs),
     /// Allows managing the OpenSearch instance
@@ -95,6 +97,7 @@ pub fn run_module(module: Modules, config: Option<&MWUtilConfig>) -> anyhow::Res
         Modules::Down(args) => modules::down::execute(config, args)?,
         Modules::Info => modules::info::execute(config)?,
         Modules::Lint(args) => modules::lint::execute(config, args, true)?,
+        Modules::ListRepoRemotes => modules::list_repo_remotes::execute(config)?,
         Modules::Npm(args) => modules::npm::execute(args)?,
         Modules::OpenSearch(args) => modules::opensearch::execute(config, args)?,
         Modules::Pull(args) => modules::pull::execute(config, args)?,

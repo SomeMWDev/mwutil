@@ -2,10 +2,11 @@ use clap::ValueEnum;
 use regex::Regex;
 use std::fmt::{Display, Formatter};
 use std::str::FromStr;
+use strum::EnumIter;
 use crate::config::DBType;
 use crate::constants::{MEDIAWIKI_CONTAINER, OPENSEARCH_CONTAINER};
 
-#[derive(Clone, Debug, PartialEq, ValueEnum)]
+#[derive(Clone, Debug, EnumIter, PartialEq, ValueEnum)]
 pub enum RepoType {
     Extension,
     Skin,

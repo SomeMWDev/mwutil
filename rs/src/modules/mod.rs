@@ -15,3 +15,4 @@ pub(crate) mod db;
 pub(crate) mod opensearch;
 pub(crate) mod lint;
 pub(crate) mod npm;
+pub(crate) mod list_repo_remotes;
