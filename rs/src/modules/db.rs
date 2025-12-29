@@ -289,8 +289,7 @@ fn dump_completer(_current: &std::ffi::OsStr) -> Vec<CompletionCandidate> {
         return vec![];
     };
     files
-        .map(|p| p.file_stem().map(|s| CompletionCandidate::new(s)))
-        .flatten()
+        .filter_map(|p| p.file_stem().map(CompletionCandidate::new))
         .collect()
 }
 

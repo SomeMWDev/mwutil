@@ -87,6 +87,7 @@ pub struct MWUtilConfig {
     pub gerrit_username: Option<String>,
     pub git_email: Option<String>,
     pub git_username: Option<String>,
+    pub security_patch_folder: Option<String>,
 
     pub compose_profiles: Vec<String>,
 
@@ -151,9 +152,9 @@ pub fn load_mwutil_config(debug: bool) -> Result<MWUtilConfig, LoadMWUtilConfigE
 
         gerrit_ssh_key: env::var("GERRIT_SSH_KEY").ok(),
         gerrit_username: env::var("GERRIT_USERNAME").ok(),
-
         git_email: env::var("GIT_EMAIL").ok(),
         git_username: env::var("GIT_USERNAME").ok(),
+        security_patch_folder: env::var("SECURITY_PATCH_FOLDER").ok(),
 
         compose_profiles,
 

@@ -12,6 +12,7 @@ use crate::modules::down::DownArgs;
 use crate::modules::lint::LintArgs;
 use crate::modules::npm::NpmArgs;
 use crate::modules::opensearch::OpenSearchArgs;
+use crate::modules::security::SecurityArgs;
 
 mod config;
 mod modules;
@@ -60,6 +61,8 @@ pub enum Modules {
     Recreate(RecreateArgs),
     /// Runs a maintenance script
     Run(RunArgs),
+    /// Allows creating and pushing security patches
+    Security(SecurityArgs),
     /// Sets up a local repository that was cloned from GitHub
     SetupGithub,
     /// Sets up git-review in a local repository that was cloned from gerrit
@@ -103,6 +106,7 @@ pub fn run_module(module: Modules, config: Option<&MWUtilConfig>) -> anyhow::Res
         Modules::Pull(args) => modules::pull::execute(config, args)?,
         Modules::Recreate(args) => modules::recreate::execute(config, args)?,
         Modules::Run(args) => modules::run::execute(config, args)?,
+        Modules::Security(args) => modules::security::execute(config, args)?,
         Modules::SetupGerrit => modules::setup_gerrit::execute(config, None)?,
         Modules::SetupGithub => modules::setup_github::execute(config, None)?,
         Modules::Shell => modules::run::execute(config, RunArgs {
