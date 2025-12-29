@@ -1,11 +1,11 @@
 use crate::config::MWUtilConfig;
 use crate::types::RepoType;
 use clap::error::ErrorKind;
-use clap::{Args, Error};
+use clap::{Args, Error, ValueEnum};
 use std::process::Command;
 
 // todo un-hardcode RepoType values here
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, ValueEnum)]
 pub enum PullRepoType {
     Core,
     Config,
@@ -18,7 +18,6 @@ pub enum PullRepoType {
 #[derive(Args)]
 pub struct PullArgs {
     /// The type of the repo
-    #[clap(value_parser = parse_repo_type)]
     pub repo_type: PullRepoType,
     /// The name of the local repo
     pub name: Option<String>,
@@ -43,19 +42,6 @@ pub fn execute(config: &MWUtilConfig, args: PullArgs) -> anyhow::Result<()> {
         .status()?;
 
     Ok(())
-}
-
-
-fn parse_repo_type(s: &str) -> Result<PullRepoType, Error> {
-    match s.to_lowercase().as_str() {
-        "core" => Ok(PullRepoType::Core),
-        "config" => Ok(PullRepoType::Config),
-        "extension" => Ok(PullRepoType::Extension),
-        "skin" => Ok(PullRepoType::Skin),
-        "service" => Ok(PullRepoType::Service),
-        "tool" => Ok(PullRepoType::Tool),
-        _ => Err(Error::new(ErrorKind::InvalidValue)),
-    }
 }
 
 impl PullRepoType {
