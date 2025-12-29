@@ -92,7 +92,14 @@ pub fn create_dump(config: &MWUtilConfig, args: DumpSubArgs) -> anyhow::Result<(
     let dump_file = get_dump(config, &args.name, Existence::MustNotExist)?;
 
     let mut spinner = SpinnerSequence::new(2, "Dumping database");
-    let out = create_db_command(config, DbCommandType::Dump, DbCommandUser::Mw, None, None, None)?
+    let out = create_db_command(
+        config,
+        DbCommandType::Dump,
+        DbCommandUser::Mw,
+        Some(&["--skip-set-charset", "--default-character-set=utf8mb4"]),
+        None,
+        None
+    )?
         .output()
         .context("Failed to dump database!")?;
 
