@@ -1,13 +1,17 @@
 use clap_complete::ArgValueCompleter;
 use std::fs;
+use std::path::PathBuf;
 use std::time::Duration;
-use anyhow::{anyhow, Context};
+use anyhow::{Context};
 use clap::{Args, Subcommand};
 use clap_complete::CompletionCandidate;
 use console::style;
 use indicatif::ProgressBar;
+use regex::Regex;
 use crate::config::{load_mwutil_config, DBType, MWUtilConfig};
 use crate::exec::{create_db_command, DbCommandType, DbCommandUser};
+
+const ALLOWED_DUMP_REGEX: &str = r"^[A-Za-z0-9\-._]+$";
 
 #[derive(Args)]
 pub struct DbArgs {
@@ -65,24 +69,13 @@ pub fn execute(config: &MWUtilConfig, args: DbArgs) -> anyhow::Result<()> {
 pub fn execute_dump_command(config: &MWUtilConfig, args: DumpArgs)-> anyhow::Result<()> {
     match args.sub_command {
         DumpSubCommand::Create(create_args) => create_dump(config, create_args),
+        DumpSubCommand::Delete(delete_args) => delete_dump(config, delete_args),
         _ => Ok(()) // TODO implement
     }
 }
 
 pub fn create_dump(config: &MWUtilConfig, args: DumpSubArgs) -> anyhow::Result<()> {
-    if !config.dump_dir.exists() {
-        fs::create_dir(config.dump_dir.as_path())?;
-        println!("{} dump directory.", style("Created").green());
-    }
-    let dump_file = config.dump_dir.join(format!("{}.sql", args.name));
-    if dump_file.exists() {
-        println!(
-            "Dump file {} at {}!",
-            style("already exists").red(),
-            dump_file.to_str().unwrap_or_default()
-        );
-        return Err(anyhow!("Dump file already exists!"));
-    }
+    let dump_file = get_dump(config, &args.name, Existence::MustNotExist)?;
     let steps = 2;
 
     let spinner = create_spinner("Dumping database...", 1, steps);
@@ -99,6 +92,19 @@ pub fn create_dump(config: &MWUtilConfig, args: DumpSubArgs) -> anyhow::Result<(
     println!(
         "{} dump at {}!",
         style("Created").green(),
+        dump_file.to_str().unwrap_or("[unknown]"),
+    );
+
+    Ok(())
+}
+
+pub fn delete_dump(config: &MWUtilConfig, args: DumpSubArgs) -> anyhow::Result<()> {
+    let dump_file = get_dump(config, &args.name, Existence::MustExist)?;
+
+    fs::remove_file(&dump_file)?;
+    println!(
+        "{} dump at {}!",
+        style("Deleted").green(),
         dump_file.to_str().unwrap_or("[unknown]"),
     );
 
@@ -148,4 +154,46 @@ fn dump_completer(_current: &std::ffi::OsStr) -> Vec<CompletionCandidate> {
             }
         })
         .collect()
+}
+
+#[derive(PartialEq)]
+enum Existence {
+    Ignore,
+    MustExist,
+    MustNotExist,
+}
+
+fn get_dump(
+    config: &MWUtilConfig,
+    name: &String,
+    existence_check: Existence
+) -> anyhow::Result<PathBuf> {
+    let re = Regex::new(ALLOWED_DUMP_REGEX)?;
+    if !re.is_match(name) {
+        anyhow::bail!(
+            "{} dump name \"{}\"!",
+            style("Invalid").red(),
+            name
+        );
+    }
+
+    if !config.dump_dir.exists() {
+        fs::create_dir(config.dump_dir.as_path())?;
+        println!("{} dump directory.", style("Created").green());
+    }
+    let dump_file = config.dump_dir.join(format!("{}.sql", name));
+    if existence_check == Existence::MustExist && !dump_file.exists() {
+        anyhow::bail!(
+            "Dump file {} at {}!",
+            style("does not exist").red(),
+            dump_file.to_str().unwrap_or_default()
+        );
+    } else if existence_check == Existence::MustNotExist && dump_file.exists() {
+        anyhow::bail!(
+            "Dump file {} at {}!",
+            style("already exists").red(),
+            dump_file.to_str().unwrap_or_default()
+        );
+    }
+    Ok(dump_file)
 }
