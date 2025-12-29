@@ -3,6 +3,7 @@ use crate::config::{load_mwutil_config, MWUtilConfig};
 use crate::modules::bash::BashArgs;
 use crate::modules::clone::CloneArgs;
 use crate::modules::composer::ComposerArgs;
+use crate::modules::db::DbArgs;
 use crate::modules::pull::PullArgs;
 use crate::modules::recreate::RecreateArgs;
 use crate::modules::run::RunArgs;
@@ -35,6 +36,8 @@ pub enum Modules {
     Clone(CloneArgs),
     /// Runs composer update
     Composer(ComposerArgs),
+    /// Allows managing the database
+    Db(DbArgs),
     /// Stops all containers
     Down,
     /// Prints info about the environment
@@ -78,6 +81,7 @@ pub fn run_module(module: Modules, config: Option<&MWUtilConfig>) -> anyhow::Res
         Modules::Bash(args) => modules::bash::execute(config, args)?,
         Modules::Clone(args) => modules::clone::execute(config, args)?,
         Modules::Composer(args) => modules::composer::execute(config, args)?,
+        Modules::Db(args) => modules::db::execute(config, args)?,
         Modules::Down => modules::down::execute(config)?,
         Modules::Info => modules::info::execute(config)?,
         Modules::SetupGerrit => modules::setup_gerrit::execute(config, None)?,

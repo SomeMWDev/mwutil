@@ -46,7 +46,7 @@ fn script_completer(_current: &std::ffi::OsStr) -> Vec<CompletionCandidate> {
     let Some(base_dir) = find_base_dir() else {
         return vec![];
     };
-    let mut result = vec![CompletionCandidate::new("works")];
+    let mut result = vec![];
 
     add_scripts_from_directory(
         base_dir.join("core").join("maintenance"),

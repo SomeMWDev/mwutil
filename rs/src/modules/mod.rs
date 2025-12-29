@@ -11,3 +11,4 @@ pub(crate) mod setup_github;
 pub(crate) mod pull;
 pub(crate) mod sql;
 pub(crate) mod info;
+pub(crate) mod db;

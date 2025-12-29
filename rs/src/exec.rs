@@ -1,6 +1,8 @@
+use std::fmt::format;
 use std::io::{BufRead, BufReader};
 use std::process::{Command, ExitStatus, Stdio};
 use std::thread;
+use anyhow::anyhow;
 use crate::config::MWUtilConfig;
 
 pub trait ContainerSupport {
@@ -88,4 +90,47 @@ pub fn create_docker_compose_command(config: &MWUtilConfig) -> Command {
     cmd.args(["compose", "--env-file", "config/.env"]);
     cmd.current_dir(config.base_dir.clone());
     cmd
+}
+
+pub enum DbCommandUser {
+    Default,
+    Root,
+}
+
+pub enum DbCommandType {
+    Dump,
+    Query,
+}
+
+pub fn create_db_command(
+    config: &MWUtilConfig,
+    cmd_type: DbCommandType,
+    user: DbCommandUser
+) -> anyhow::Result<Command> {
+    let mut cmd = Command::new(match cmd_type {
+        DbCommandType::Dump => config.db_type.get_dump_command(),
+        DbCommandType::Query => config.db_type.get_query_command(),
+    });
+
+    let database = config.mw_database
+        .as_ref()
+        .ok_or_else(|| anyhow!("MediaWiki database name is not set in the configuration"))?;
+    cmd.arg(database);
+
+    match user {
+        DbCommandUser::Default => {
+            cmd.args([
+                &format!("-u{}", config.db_user.clone().ok_or_else(|| anyhow!("DB user not set!"))?),
+                &format!("-p{}", config.db_password.clone().ok_or_else(|| anyhow!("DB password not set!"))?),
+            ]);
+        },
+        DbCommandUser::Root => {
+            let root_password = config.db_root_password
+                .as_ref()
+                .ok_or_else(|| anyhow!("DB root password not set!"))?;
+            cmd.args(["-uroot", &format!("-p{root_password}")]);
+        },
+    }
+
+    Ok(cmd.in_container(config, config.db_type.get_container_name(), None))
 }

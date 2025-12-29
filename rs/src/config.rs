@@ -1,29 +1,25 @@
 use std::{env, fs};
 use std::fmt::Display;
-use std::path::{PathBuf};
+use std::path::{Path, PathBuf};
 use std::str::FromStr;
+use clap::ValueEnum;
 
 const CONFIG_FILE_NAME: &str = ".mwutil.json";
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, ValueEnum)]
 pub enum DBType {
     Mysql,
     Mariadb,
 }
 
-#[derive(Debug)]
-pub struct ParseDBTypeError;
-
-impl FromStr for DBType {
-    type Err = ParseDBTypeError;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
+impl DBType {
+    fn parse(s: &str) -> Option<Self> {
         if s.eq_ignore_ascii_case("mysql") {
-            Ok(DBType::Mysql)
+            Some(DBType::Mysql)
         } else if s.eq_ignore_ascii_case("mariadb") {
-            Ok(DBType::Mariadb)
+            Some(DBType::Mariadb)
         } else {
-            Err(ParseDBTypeError)
+            None
         }
     }
 }
@@ -75,6 +71,8 @@ pub struct MWUtilConfig {
     pub dump_dir: PathBuf,
 
     pub db_type: DBType,
+    pub db_user: Option<String>,
+    pub db_password: Option<String>,
     pub db_root_password: Option<String>,
     pub mw_database: Option<String>,
     pub mw_install_path: String,
@@ -100,7 +98,7 @@ pub fn load_mwutil_config(debug: bool) -> Result<MWUtilConfig, LoadMWUtilConfigE
     let json_data: serde_json::Value = serde_json::from_str(&contents)
         .map_err(|_| LoadMWUtilConfigError("Failed to parse config file as JSON"))?;
 
-    fn get_dir(json_data: &serde_json::Value, base_dir: &PathBuf, key: &str, default: &str) -> PathBuf {
+    fn get_dir(json_data: &serde_json::Value, base_dir: &Path, key: &str, default: &str) -> PathBuf {
         base_dir.join(
             json_data
                 .get(key)
@@ -115,7 +113,7 @@ pub fn load_mwutil_config(debug: bool) -> Result<MWUtilConfig, LoadMWUtilConfigE
 
     load_env(&config_dir);
 
-    let db_type = DBType::from_str(
+    let db_type = DBType::parse(
         env::var("MWC_DB_TYPE").unwrap_or(String::from("mariadb")).as_str()
     ).unwrap_or(DBType::Mariadb);
     let mw_install_path = env::var("MW_INSTALL_PATH")
@@ -130,6 +128,8 @@ pub fn load_mwutil_config(debug: bool) -> Result<MWUtilConfig, LoadMWUtilConfigE
         base_dir,
 
         db_type,
+        db_user: env::var("MWC_DB_USER").ok(),
+        db_password: env::var("MWC_DB_PASSWORD").ok(),
         db_root_password: env::var("MWC_DB_ROOT_PASSWORD").ok(),
         mw_database: env::var("MWC_DB_DATABASE").ok(),
         mw_install_path,

@@ -1,7 +1,8 @@
 use std::process::Command;
+use anyhow::Context;
 use clap::Args;
 use crate::config::MWUtilConfig;
-use crate::exec::ContainerSupport;
+use crate::exec::{create_db_command, ContainerSupport, DbCommandType, DbCommandUser};
 use crate::modules::run;
 use crate::modules::run::RunArgs;
 
@@ -18,13 +19,14 @@ pub struct SqlArgs {
 
 pub fn execute(config: &MWUtilConfig, args: SqlArgs) -> anyhow::Result<()> {
     if args.root {
-        let mut cmd = Command::new(config.db_type.get_query_command());
-        let root_password = config.db_root_password.as_ref().ok_or_else(|| anyhow::anyhow!("Database root password is not set in the configuration"))?;
-        let database = config.mw_database.as_ref().ok_or_else(|| anyhow::anyhow!("MediaWiki database name is not set in the configuration"))?;
-        cmd.args([database, "-uroot", &format!("-p{root_password}")]);
-        cmd.args(args.extra_args);
-        cmd.in_container(config, config.db_type.get_container_name(), None)
+        let status = create_db_command(config, DbCommandType::Query, DbCommandUser::Root)?
+            .args(args.extra_args)
             .status()?;
+
+        if !status.success() {
+            anyhow::bail!("sql command failed with status: {}", status);
+        }
+
         Ok(())
     } else {
         run::execute(config, RunArgs {
