@@ -6,10 +6,11 @@ use clap_complete::ArgValueCompleter;
 
 #[derive(Args)]
 pub struct RecreateArgs {
-    /// The container to execute the command in
+    /// The container to recreate
     #[arg(add = ArgValueCompleter::new(container_completer))]
     pub container: Option<String>,
 }
+
 pub fn execute(config: &MWUtilConfig, args: RecreateArgs) -> anyhow::Result<()> {
     let mut cmd = create_docker_compose_command(config);
     cmd.args(["up", "-d", "--force-recreate"]);

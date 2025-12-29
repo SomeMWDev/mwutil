@@ -8,6 +8,7 @@ use crate::modules::recreate::RecreateArgs;
 use crate::modules::run::RunArgs;
 use crate::modules::sql::SqlArgs;
 use clap::{CommandFactory, Parser, Subcommand};
+use crate::modules::down::DownArgs;
 
 mod config;
 mod modules;
@@ -38,8 +39,8 @@ pub enum Modules {
     Composer(ComposerArgs),
     /// Allows managing the database
     Db(DbArgs),
-    /// Stops all containers
-    Down,
+    /// Stops containers
+    Down(DownArgs),
     /// Prints info about the environment
     Info,
     /// Pulls a local repository
@@ -82,7 +83,7 @@ pub fn run_module(module: Modules, config: Option<&MWUtilConfig>) -> anyhow::Res
         Modules::Clone(args) => modules::clone::execute(config, args)?,
         Modules::Composer(args) => modules::composer::execute(config, args)?,
         Modules::Db(args) => modules::db::execute(config, args)?,
-        Modules::Down => modules::down::execute(config)?,
+        Modules::Down(args) => modules::down::execute(config, args)?,
         Modules::Info => modules::info::execute(config)?,
         Modules::SetupGerrit => modules::setup_gerrit::execute(config, None)?,
         Modules::SetupGithub => modules::setup_github::execute(config, None)?,
