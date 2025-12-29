@@ -2,7 +2,7 @@ use clap::ValueEnum;
 use std::fmt::Display;
 use std::path::{Path, PathBuf};
 use std::{env, fs};
-use anyhow::{Context};
+use anyhow::{anyhow, Context};
 use regex::Regex;
 
 const CONFIG_FILE_NAME: &str = ".mwutil.json";
@@ -94,17 +94,15 @@ pub struct MWUtilConfig {
     pub debug: bool,
 }
 
-#[derive(Debug)]
-pub struct LoadMWUtilConfigError(pub &'static str);
-
-pub fn load_mwutil_config(debug: bool) -> Result<MWUtilConfig, LoadMWUtilConfigError> {
-    let base_dir = find_base_dir().ok_or(LoadMWUtilConfigError("Failed to find basedir"))?;
+pub fn load_mwutil_config(debug: bool) -> anyhow::Result<MWUtilConfig> {
+    let base_dir = find_base_dir()
+        .ok_or_else(|| anyhow!("Failed to find basedir"))?;
 
     let file = base_dir.join(CONFIG_FILE_NAME);
     let contents = fs::read_to_string(&file)
-        .map_err(|_| LoadMWUtilConfigError("Failed to read config file"))?;
+        .context("Failed to read config file")?;
     let json_data: serde_json::Value = serde_json::from_str(&contents)
-        .map_err(|_| LoadMWUtilConfigError("Failed to parse config file as JSON"))?;
+        .context("Failed to parse config file as JSON")?;
 
     fn get_dir(json_data: &serde_json::Value, base_dir: &Path, key: &str, default: &str) -> PathBuf {
         base_dir.join(
@@ -130,8 +128,7 @@ pub fn load_mwutil_config(debug: bool) -> Result<MWUtilConfig, LoadMWUtilConfigE
         .unwrap_or(String::from("master"));
 
     let compose_profiles: Vec<String> = env::var("COMPOSE_PROFILES")
-        .context("COMPOSER_PROFILES env variable is required")
-        .unwrap()
+        .context("COMPOSER_PROFILES env variable is required")?
         .split(",")
         .map(String::from)
         .collect();
@@ -162,7 +159,7 @@ pub fn load_mwutil_config(debug: bool) -> Result<MWUtilConfig, LoadMWUtilConfigE
     })
 }
 
-fn load_env(config_dir: &PathBuf) {
+fn load_env(config_dir: &Path) {
     dotenv::from_path(config_dir.join(".env")).ok();
 }
 
@@ -187,11 +184,13 @@ pub fn find_base_dir() -> Option<PathBuf> {
 
 pub fn update_env_var(config: &MWUtilConfig, var: &str, val: &str) -> anyhow::Result<()> {
     let env_file = config.config_dir.join(".env");
-    let contents = fs::read_to_string(&env_file)?;
+    let contents = fs::read_to_string(&env_file)
+        .context("Failed to read .env file!")?;
 
     let re = Regex::new(&format!(r"(?m)^{}=.*$", regex::escape(var)))?;
     let output = re.replace_all(contents.as_str(), format!("{}={}", var, val));
-    fs::write(env_file, output.as_ref())?;
+    fs::write(env_file, output.as_ref())
+        .context("Failed to write to .env file!")?;
     Ok(())
 }
 
