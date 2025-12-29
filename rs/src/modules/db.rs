@@ -1,3 +1,4 @@
+use std::fmt::format;
 use crate::config::{load_mwutil_config, DBType, MWUtilConfig};
 use crate::constants::MEDIAWIKI_CONTAINER;
 use crate::exec::{create_db_command, run_sql_query, DbCommandDatabase, DbCommandType, DbCommandUser};
@@ -15,6 +16,7 @@ use std::io::Write;
 use std::path::PathBuf;
 use std::process::Stdio;
 use std::time::Duration;
+use dialoguer::Confirm;
 
 const ALLOWED_DUMP_REGEX: &str = r"^[A-Za-z0-9\-._]+$";
 
@@ -51,6 +53,8 @@ pub enum DumpSubCommand {
     Create(DumpSubArgs),
     /// Deletes a database dump
     Delete(DumpSubArgs),
+    /// Deletes all database dumps
+    DeleteAll,
     /// Imports a database dump
     Import(DumpSubArgs),
     /// Lists all database dumps
@@ -75,6 +79,7 @@ pub fn execute_dump_command(config: &MWUtilConfig, args: DumpArgs)-> anyhow::Res
     match args.sub_command {
         DumpSubCommand::Create(create_args) => create_dump(config, create_args),
         DumpSubCommand::Delete(delete_args) => delete_dump(config, delete_args),
+        DumpSubCommand::DeleteAll => delete_all_dumps(config),
         DumpSubCommand::Import(import_args) => import_dump(config, import_args),
         DumpSubCommand::List => list_dumps(config),
     }
@@ -113,6 +118,27 @@ pub fn delete_dump(config: &MWUtilConfig, args: DumpSubArgs) -> anyhow::Result<(
         style("Deleted").green(),
         dump_file.to_str().unwrap_or("[unknown]"),
     );
+
+    Ok(())
+}
+
+pub fn delete_all_dumps(config: &MWUtilConfig) -> anyhow::Result<()> {
+    let dump_files: Vec<PathBuf> = get_all_dump_files(config)
+        .ok_or(anyhow!("Failed to get all dump files!"))?
+        .collect();
+
+    let confirmation = Confirm::new()
+        .with_prompt(format!("Do you want to continue and delete {} dump files?", dump_files.len()))
+        .interact()?;
+
+    if !confirmation {
+        return Ok(())
+    }
+
+    for file in dump_files {
+        fs::remove_file(&file)?;
+        println!("Deleted {}", file.to_str().unwrap());
+    }
 
     Ok(())
 }
