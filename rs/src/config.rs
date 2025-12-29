@@ -194,6 +194,19 @@ pub fn update_env_var(config: &MWUtilConfig, var: &str, val: &str) -> anyhow::Re
     Ok(())
 }
 
-pub fn update_profiles(config: &MWUtilConfig, profiles: &[String]) -> anyhow::Result<()> {
+pub fn update_profiles(config: &mut MWUtilConfig, profiles: &[String]) -> anyhow::Result<()> {
+    config.compose_profiles = profiles.to_vec();
     update_env_var(config, "COMPOSE_PROFILES", profiles.join(",").as_str())
+}
+
+pub fn enable_profile(config: &mut MWUtilConfig, profile: String) -> anyhow::Result<()> {
+    let mut new_profiles = config.compose_profiles.clone();
+    new_profiles.push(profile);
+    update_profiles(config, new_profiles.as_slice())
+}
+
+pub fn disable_profile(config: &mut MWUtilConfig, profile: &str) -> anyhow::Result<()> {
+    let mut new_profiles = config.compose_profiles.clone();
+    new_profiles.retain(|p| p != profile);
+    update_profiles(config, new_profiles.as_slice())
 }

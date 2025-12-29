@@ -1,5 +1,5 @@
 use crate::config::{load_mwutil_config, update_env_var, update_profiles, DBType, MWUtilConfig};
-use crate::constants::MEDIAWIKI_CONTAINER;
+use crate::constants::{ALLOWED_DUMP_REGEX, MEDIAWIKI_CONTAINER};
 use crate::exec::{create_db_command, run_sql_query, DbCommandDatabase, DbCommandType, DbCommandUser};
 use crate::modules::{down, recreate};
 use crate::modules::recreate::RecreateArgs;
@@ -20,8 +20,6 @@ use std::process::Stdio;
 use std::thread::sleep;
 use std::time::Duration;
 use crate::modules::down::DownArgs;
-
-const ALLOWED_DUMP_REGEX: &str = r"^[A-Za-z0-9\-._]+$";
 
 #[derive(Args)]
 pub struct DbArgs {
@@ -230,12 +228,11 @@ pub fn switch(config: &MWUtilConfig, args: SwitchArgs) -> anyhow::Result<()> {
     let mut profiles = config.compose_profiles.clone();
     profiles.retain(|p| p != config.db_type.get_container_name());
     profiles.push(args.to.get_container_name().into());
-    update_profiles(config, &profiles)?;
+    let mut new_config = config.clone();
+    update_profiles(&mut new_config, &profiles)?;
+    new_config.db_type = args.to.clone();
     update_env_var(config, "MWC_DB_TYPE", args.to.get_container_name())?;
     update_env_var(config, "MWC_DB_HOST", args.to.get_container_name())?;
-    let mut new_config = config.clone();
-    new_config.db_type = args.to.clone();
-    new_config.compose_profiles = profiles;
 
     spinner.next("Stopping old container");
     down::execute(&new_config, DownArgs {

@@ -12,3 +12,4 @@ pub(crate) mod pull;
 pub(crate) mod sql;
 pub(crate) mod info;
 pub(crate) mod db;
+pub(crate) mod opensearch;

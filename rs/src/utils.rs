@@ -59,15 +59,19 @@ pub struct SpinnerSequence {
 impl SpinnerSequence {
 
     pub fn next(&mut self, text: &str) {
+        self.next_static(text);
+
+        let spinner = ProgressBar::new_spinner();
+        spinner.enable_steady_tick(Duration::from_millis(100));
+    }
+
+    pub fn next_static(&mut self, text: &str) {
         if let Some(spinner) = self.last.as_ref() {
             spinner.finish();
         }
         self.cur += 1;
 
         println!("{} {text}...", style(format!("[{}/{}]", self.cur, self.max)).bold().dim());
-
-        let spinner = ProgressBar::new_spinner();
-        spinner.enable_steady_tick(Duration::from_millis(100));
     }
 
     pub fn finish(self) {
