@@ -1,9 +1,9 @@
+use anyhow::{anyhow, Context};
 use clap::ValueEnum;
+use regex::Regex;
 use std::fmt::Display;
 use std::path::{Path, PathBuf};
 use std::{env, fs};
-use anyhow::{anyhow, Context};
-use regex::Regex;
 
 const CONFIG_FILE_NAME: &str = ".mwutil.json";
 

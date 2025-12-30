@@ -1,11 +1,11 @@
-use std::{env, fs};
+use crate::config::MWUtilConfig;
+use anyhow::bail;
+use clap::{Args, Subcommand};
+use regex::Regex;
 use std::path::PathBuf;
 use std::process::Command;
 use std::str::FromStr;
-use anyhow::{anyhow, bail};
-use clap::{Args, Subcommand};
-use regex::Regex;
-use crate::config::MWUtilConfig;
+use std::{env, fs};
 
 #[derive(Args)]
 pub struct SecurityArgs {

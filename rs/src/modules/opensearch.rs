@@ -1,15 +1,15 @@
-use std::process::Command;
-use clap::{Args, Subcommand};
-use console::style;
 use crate::config::{disable_profile, enable_profile, MWUtilConfig};
 use crate::constants::{OPENSEARCH_CONTAINER, OPENSEARCH_PROFILE};
 use crate::exec::ContainerSupport;
-use crate::modules::{down, recreate, run};
 use crate::modules::down::DownArgs;
 use crate::modules::recreate::RecreateArgs;
 use crate::modules::run::RunArgs;
+use crate::modules::{down, recreate, run};
 use crate::types::Container;
 use crate::utils::SpinnerSequence;
+use clap::{Args, Subcommand};
+use console::style;
+use std::process::Command;
 
 #[derive(Args)]
 pub struct OpenSearchArgs {

@@ -1,9 +1,9 @@
 use crate::config::MWUtilConfig;
+use crate::types::Container;
 use anyhow::anyhow;
 use std::io::{BufRead, BufReader};
 use std::process::{Command, ExitStatus, Stdio};
 use std::thread;
-use crate::types::Container;
 
 pub trait ContainerSupport {
     fn in_container(self, config: &MWUtilConfig, container: Container, exec_options: Option<&[String]>) -> Self;
@@ -106,8 +106,7 @@ pub enum DbCommandType {
     Query,
 }
 
-pub enum DbCommandDatabase<'a> {
-    Custom(&'a str),
+pub enum DbCommandDatabase {
     None,
     Mw,
 }
@@ -126,7 +125,6 @@ pub fn create_db_command(
     });
 
     match database.unwrap_or(DbCommandDatabase::Mw) {
-        DbCommandDatabase::Custom(name) => Some(name),
         DbCommandDatabase::None => None,
         DbCommandDatabase::Mw => config.mw_database.as_deref(),
     }.map(|db|cmd.arg(db));

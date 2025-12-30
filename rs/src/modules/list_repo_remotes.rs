@@ -1,11 +1,11 @@
-use std::collections::HashMap;
-use std::fs;
-use std::path::{PathBuf};
-use std::process::Command;
-use strum::IntoEnumIterator;
 use crate::config::MWUtilConfig;
 use crate::types::RepoType;
 use crate::utils::capitalize;
+use std::collections::HashMap;
+use std::fs;
+use std::path::PathBuf;
+use std::process::Command;
+use strum::IntoEnumIterator;
 
 pub fn execute(config: &MWUtilConfig) -> anyhow::Result<()> {
     for repo_type in RepoType::iter() {

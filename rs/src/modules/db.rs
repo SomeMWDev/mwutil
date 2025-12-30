@@ -1,8 +1,9 @@
 use crate::config::{load_mwutil_config, update_env_var, update_profiles, DBType, MWUtilConfig};
 use crate::constants::{ALLOWED_DUMP_REGEX, MEDIAWIKI_CONTAINER};
 use crate::exec::{create_db_command, run_sql_query, DbCommandDatabase, DbCommandType, DbCommandUser};
-use crate::modules::{down, recreate};
+use crate::modules::down::DownArgs;
 use crate::modules::recreate::RecreateArgs;
+use crate::modules::{down, recreate};
 use crate::utils::SpinnerSequence;
 use anyhow::{anyhow, Context};
 use clap::{Args, Subcommand};
@@ -19,7 +20,6 @@ use std::path::PathBuf;
 use std::process::Stdio;
 use std::thread::sleep;
 use std::time::Duration;
-use crate::modules::down::DownArgs;
 
 #[derive(Args)]
 pub struct DbArgs {
@@ -295,7 +295,6 @@ fn dump_completer(_current: &std::ffi::OsStr) -> Vec<CompletionCandidate> {
 
 #[derive(PartialEq)]
 enum Existence {
-    Ignore,
     MustExist,
     MustNotExist,
 }
