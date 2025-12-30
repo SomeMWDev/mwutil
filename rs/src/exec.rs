@@ -1,9 +1,10 @@
 use crate::config::MWUtilConfig;
 use crate::types::Container;
-use anyhow::anyhow;
+use anyhow::{anyhow, Context};
 use std::io::{BufRead, BufReader};
 use std::process::{Command, ExitStatus, Stdio};
 use std::thread;
+use std::thread::JoinHandle;
 
 pub trait ContainerSupport {
     fn in_container(
@@ -51,46 +52,52 @@ impl ContainerSupport for Command {
 }
 
 pub trait CommandExt {
-    fn live_output(&mut self) -> std::io::Result<(ExitStatus, String, String)>;
+    fn live_output(&mut self) -> anyhow::Result<(ExitStatus, String, String)>;
 }
 
 impl CommandExt for Command {
-    fn live_output(&mut self) -> std::io::Result<(ExitStatus, String, String)> {
+    fn live_output(&mut self) -> anyhow::Result<(ExitStatus, String, String)> {
         self.stdout(Stdio::piped());
         self.stderr(Stdio::piped());
 
-        let mut child = self.spawn()?;
+        let mut child = self.spawn()
+            .context("Failed to spawn child")?;
 
-        let stdout = child.stdout.take().unwrap();
-        let stderr = child.stderr.take().unwrap();
+        let stdout = child.stdout.take()
+            .ok_or_else(|| anyhow!("Failed to take stdout"))?;
+        let stderr = child.stderr.take()
+            .ok_or_else(|| anyhow!("Failed to take stderr"))?;
 
-        let stdout_handle = thread::spawn(move || {
+        let stdout_handle: JoinHandle<anyhow::Result<String>> = thread::spawn(move || {
             let reader = BufReader::new(stdout);
             let mut collected = String::new();
             for line in reader.lines() {
-                let line = line.unwrap();
+                let line = line?;
                 println!("{}", line);
                 collected.push_str(&line);
                 collected.push('\n');
             }
-            collected
+            Ok(collected)
         });
 
-        let stderr_handle = thread::spawn(move || {
+        let stderr_handle: JoinHandle<anyhow::Result<String>> = thread::spawn(move || {
             let reader = BufReader::new(stderr);
             let mut collected = String::new();
             for line in reader.lines() {
-                let line = line.unwrap();
+                let line = line?;
                 eprintln!("{}", line);
                 collected.push_str(&line);
                 collected.push('\n');
             }
-            collected
+            Ok(collected)
         });
 
-        let status = child.wait()?;
-        let stdout_output = stdout_handle.join().unwrap();
-        let stderr_output = stderr_handle.join().unwrap();
+        let status = child.wait()
+            .context("Failed to wait for child")?;
+        let stdout_output = stdout_handle.join()
+            .map_err(|e| anyhow!("Failed to handle stdout: {:?}", e))??;
+        let stderr_output = stderr_handle.join()
+            .map_err(|e| anyhow!("Failed to handle stderr: {:?}", e))??;
 
         Ok((status, stdout_output, stderr_output))
     }

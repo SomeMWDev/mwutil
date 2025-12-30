@@ -36,21 +36,22 @@ pub fn execute(config: Option<&MWUtilConfig>, args: SecurityArgs) -> anyhow::Res
 }
 
 fn create_patch(config: Option<&MWUtilConfig>, args: CreatePatchArgs) -> anyhow::Result<()> {
-    let folder = config
-        .map(|c| {
-            c.security_patch_folder
-                .clone()
-                .as_deref()
-                .map(|s| PathBuf::from_str(s).unwrap())
-        })
-        .unwrap_or_default()
-        .unwrap_or(env::current_dir()?);
+    let folder: PathBuf = match config {
+        Some(c) => {
+            if let Some(folder_str) = &c.security_patch_folder {
+                PathBuf::from_str(folder_str)?
+            } else {
+                env::current_dir()?
+            }
+        },
+        None => env::current_dir()?,
+    };
     if !folder.exists() {
         fs::create_dir(&folder)?;
     }
     let name: String;
-    if args.name.is_some() {
-        name = args.name.unwrap();
+    if let Some(n) = args.name {
+        name = n;
     } else {
         let output = Command::new("git")
             .args(["branch", "--show-current"])

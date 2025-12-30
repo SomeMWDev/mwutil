@@ -49,7 +49,7 @@ pub fn execute(config: &MWUtilConfig, args: CloneArgs) -> anyhow::Result<()> {
     let name = args.name.unwrap_or(repo_data.0);
     let url = repo_data.1;
     let target_folder = config.base_dir.join(args.repo_type.get_plural_name());
-    let (status, _stdout, stderr) = clone(&url, &name, &target_folder, args.shallow, args.branch.as_ref());
+    let (status, _stdout, stderr) = clone(&url, &name, &target_folder, args.shallow, args.branch.as_ref())?;
     println!("Git clone exited with status: {}", status);
     if status.into_raw() == 32768 {
         if stderr.contains("already exists and is not an empty directory") {
@@ -60,7 +60,7 @@ pub fn execute(config: &MWUtilConfig, args: CloneArgs) -> anyhow::Result<()> {
             });
         }
         println!("Attempting to clone default branch instead...");
-        let (status, stdout, stderr) = clone(&url, &name, &target_folder, args.shallow, None);
+        let (status, stdout, stderr) = clone(&url, &name, &target_folder, args.shallow, None)?;
         println!("Git clone exited with status: {}", status);
         if !status.success() {
             return Err(anyhow::anyhow!("Git clone failed: {}\n{}", stdout, stderr));
@@ -139,7 +139,7 @@ fn clone(
     workdir: &Path,
     shallow: bool,
     branch: Option<&String>
-) -> (ExitStatus, String, String) {
+) -> anyhow::Result<(ExitStatus, String, String)> {
     let mut cmd = Command::new("git");
     cmd.args(["clone", url, name]);
     if shallow {
@@ -149,6 +149,5 @@ fn clone(
         cmd.args(["--branch", branch_name]);
     }
     cmd.current_dir(workdir);
-    // TODO fix unwrap
-    cmd.live_output().unwrap()
+    cmd.live_output()
 }
