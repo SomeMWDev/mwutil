@@ -34,8 +34,6 @@ struct Cli {
 
 #[derive(Subcommand)]
 pub enum Modules {
-    /// Adds the Gerrit SSH key to the SSH agent
-    AddGerritSSHKey,
     /// Starts a bash shell in a container
     Bash(BashArgs),
     /// Clones a repository from GitHub or Gerrit
@@ -92,7 +90,6 @@ pub fn run_module(module: Modules, config: Option<&MWUtilConfig>) -> anyhow::Res
         bail!("The selected module only works inside of an mw-dev-kit environment!");
     }
     match module {
-        Modules::AddGerritSSHKey => modules::add_gerrit_ssh_key::execute(config.unwrap()),
         Modules::Bash(args) => modules::bash::execute(config.unwrap(), args),
         Modules::Clone(args) => modules::clone::execute(config.unwrap(), args),
         Modules::Composer(args) => modules::composer::execute(config.unwrap(), args),
