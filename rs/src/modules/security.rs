@@ -70,13 +70,13 @@ fn create_patch(config: Option<&MWUtilConfig>, args: CreatePatchArgs) -> anyhow:
 
     let patch_file = folder.join(format!("{name}.patch"));
     let status = Command::new("git")
-        .args(["format-patch", "HEAD^", "--output", patch_file.to_str().unwrap()])
+        .args(["format-patch", "HEAD^", "--output", patch_file.to_string_lossy().as_ref()])
         .status()?;
     if !status.success() {
         bail!("Failed to create patch!");
     }
 
-    println!("Patch created at {}", patch_file.to_str().unwrap());
+    println!("Patch created at {}", patch_file.to_string_lossy().as_ref());
 
     Ok(())
 }

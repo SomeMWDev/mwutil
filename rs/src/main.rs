@@ -124,9 +124,6 @@ pub fn run_module(module: Modules, config: Option<&MWUtilConfig>) -> anyhow::Res
 
 impl Modules {
     fn works_globally(&self) -> bool {
-        match self {
-            Modules::Security(_) => true,
-            _ => false,
-        }
+        matches!(self, Modules::Security(_))
     }
 }

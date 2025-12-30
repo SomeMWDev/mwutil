@@ -14,6 +14,7 @@ use dialoguer::Confirm;
 use rand::distr::Alphanumeric;
 use rand::Rng;
 use regex::Regex;
+use std::ffi::OsStr;
 use std::fs;
 use std::io::Write;
 use std::path::PathBuf;
@@ -109,7 +110,7 @@ pub fn create_dump(config: &MWUtilConfig, args: DumpSubArgs) -> anyhow::Result<(
     println!(
         "{} dump at {}!",
         style("Created").green(),
-        dump_file.to_str().unwrap_or("[unknown]"),
+        dump_file.to_string_lossy(),
     );
 
     Ok(())
@@ -122,7 +123,7 @@ pub fn delete_dump(config: &MWUtilConfig, args: DumpSubArgs) -> anyhow::Result<(
     println!(
         "{} dump at {}!",
         style("Deleted").green(),
-        dump_file.to_str().unwrap_or("[unknown]"),
+        dump_file.to_string_lossy(),
     );
 
     Ok(())
@@ -143,7 +144,7 @@ pub fn delete_all_dumps(config: &MWUtilConfig) -> anyhow::Result<()> {
 
     for file in dump_files {
         fs::remove_file(&file)?;
-        println!("Deleted {}", file.to_str().unwrap());
+        println!("Deleted {}", file.to_string_lossy());
     }
 
     Ok(())
@@ -203,7 +204,11 @@ pub fn list_dumps(config: &MWUtilConfig) -> anyhow::Result<()> {
     let dump_files = get_all_dump_files(config)
         .ok_or_else(|| anyhow!("Failed to get all dump files!"))?;
     for file in dump_files {
-        println!("{}", file.file_stem().unwrap().to_str().unwrap());
+        println!("{}", file.file_stem()
+            .map(OsStr::to_string_lossy)
+            .map(|c| c.to_string())
+            .unwrap_or("[Invalid]".to_string())
+        );
     }
 
     Ok(())
@@ -322,13 +327,13 @@ fn get_dump(
         anyhow::bail!(
             "Dump file {} at {}!",
             style("does not exist").red(),
-            dump_file.to_str().unwrap_or_default()
+            dump_file.to_string_lossy()
         );
     } else if existence_check == Existence::MustNotExist && dump_file.exists() {
         anyhow::bail!(
             "Dump file {} at {}!",
             style("already exists").red(),
-            dump_file.to_str().unwrap_or_default()
+            dump_file.to_string_lossy()
         );
     }
     Ok(dump_file)

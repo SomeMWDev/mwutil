@@ -2,6 +2,7 @@ use crate::config::MWUtilConfig;
 use crate::types::RepoType;
 use crate::utils::capitalize;
 use std::collections::HashMap;
+use std::ffi::OsStr;
 use std::fs;
 use std::path::PathBuf;
 use std::process::Command;
@@ -36,7 +37,10 @@ fn list_folder(folder: PathBuf) -> anyhow::Result<()> {
             let mut remote = String::from_utf8(status.stdout)?;
             remote.pop();
             remotes.insert(
-                path.file_stem().unwrap().to_str().unwrap().into(),
+                path.file_stem()
+                    .map(OsStr::to_string_lossy)
+                    .map(|c| c.to_string())
+                    .unwrap_or("[Invalid]".to_string()),
                 remote
             );
         }

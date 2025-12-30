@@ -36,7 +36,7 @@ pub fn execute(config: &MWUtilConfig, args: RunArgs) -> anyhow::Result<()> {
     }
     cmd.args(args.extra_args);
 
-    cmd.in_container(config, Container::MediaWiki, None)
+    cmd.in_container(config, Container::MediaWiki, None)?
         .status()
         .ok();
     Ok(())
@@ -57,7 +57,7 @@ fn script_completer(_current: &std::ffi::OsStr) -> Vec<CompletionCandidate> {
         for extension in extensions.flatten() {
             add_scripts_from_directory(
                 extension.path().join("maintenance"),
-                Some(extension.file_name().to_str().unwrap()),
+                Some(extension.file_name().to_string_lossy().as_ref()),
                 &mut result
             );
         }

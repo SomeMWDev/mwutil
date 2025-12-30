@@ -25,7 +25,7 @@ pub fn execute(config: &MWUtilConfig, args: ComposerArgs) -> anyhow::Result<()> 
         cmd.current_dir(Path::new(&workdir));
     };
 
-    cmd.in_container(config, Container::MediaWiki, None)
+    cmd.in_container(config, Container::MediaWiki, None)?
         .status()
         .ok();
 

@@ -47,7 +47,7 @@ pub fn execute(config: &MWUtilConfig, args: BashArgs) -> anyhow::Result<()> {
         exec_options.push("root".into());
     }
 
-    cmd.in_container(config, container, Some(&exec_options))
+    cmd.in_container(config, container, Some(&exec_options))?
         .status()
         .ok();
 

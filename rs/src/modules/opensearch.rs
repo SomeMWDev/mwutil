@@ -62,7 +62,7 @@ fn reset(config: &MWUtilConfig) -> anyhow::Result<()> {
     let mut spinner = SpinnerSequence::new(2, "Resetting index");
     let mut cmd = Command::new("curl");
     cmd.args(["-X", "DELETE", "localhost:9200/_all"]);
-    cmd.in_container(config, Container::OpenSearch, None)
+    cmd.in_container(config, Container::OpenSearch, None)?
         .status()?;
 
     spinner.next("Re-indexing wiki pages");

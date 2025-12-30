@@ -59,7 +59,7 @@ impl LintType {
         }
 
         if self.can_run_in_container() {
-            cmd = cmd.in_container(config, Container::MediaWiki, None);
+            cmd = cmd.in_container(config, Container::MediaWiki, None)?;
         }
 
         let status = cmd.status()?;

@@ -6,10 +6,10 @@ pub fn execute(config: &MWUtilConfig) -> anyhow::Result<()> {
     print_section(
         "Environment",
         &[
-            ("Base dir", &config.base_dir.to_str().unwrap().to_string()),
-            ("Config dir", &config.config_dir.to_str().unwrap().to_string()),
-            ("Core dir", &config.core_dir.to_str().unwrap().to_string()),
-            ("Dump dir", &config.dump_dir.to_str().unwrap().to_string()),
+            ("Base dir", &config.base_dir.to_string_lossy().to_string()),
+            ("Config dir", &config.config_dir.to_string_lossy().to_string()),
+            ("Core dir", &config.core_dir.to_string_lossy().to_string()),
+            ("Dump dir", &config.dump_dir.to_string_lossy().to_string()),
             ("Profiles", &config.compose_profiles.join(", ")),
         ]
     );
