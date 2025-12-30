@@ -83,43 +83,39 @@ fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
     let config = load_mwutil_config(cli.debug);
 
-    run_module(cli.module, config.as_ref().ok())?;
-
-    Ok(())
+    run_module(cli.module, config.as_ref().ok())
 }
 
 pub fn run_module(module: Modules, config: Option<&MWUtilConfig>) -> anyhow::Result<()> {
     // TODO don't unwrap config - instead make it optional
     let config = config.unwrap();
     match module {
-        Modules::AddGerritSSHKey => modules::add_gerrit_ssh_key::execute(config)?,
-        Modules::Bash(args) => modules::bash::execute(config, args)?,
-        Modules::Clone(args) => modules::clone::execute(config, args)?,
-        Modules::Composer(args) => modules::composer::execute(config, args)?,
-        Modules::Db(args) => modules::db::execute(config, args)?,
-        Modules::Down(args) => modules::down::execute(config, args)?,
-        Modules::Info => modules::info::execute(config)?,
-        Modules::Lint(args) => modules::lint::execute(config, args, true)?,
-        Modules::ListRepoRemotes => modules::list_repo_remotes::execute(config)?,
-        Modules::Npm(args) => modules::npm::execute(args)?,
-        Modules::OpenSearch(args) => modules::opensearch::execute(config, args)?,
-        Modules::Pull(args) => modules::pull::execute(config, args)?,
-        Modules::Recreate(args) => modules::recreate::execute(config, args)?,
-        Modules::Run(args) => modules::run::execute(config, args)?,
-        Modules::Security(args) => modules::security::execute(config, args)?,
-        Modules::SetupGerrit => modules::setup_gerrit::execute(config, None)?,
-        Modules::SetupGithub => modules::setup_github::execute(config, None)?,
+        Modules::AddGerritSSHKey => modules::add_gerrit_ssh_key::execute(config),
+        Modules::Bash(args) => modules::bash::execute(config, args),
+        Modules::Clone(args) => modules::clone::execute(config, args),
+        Modules::Composer(args) => modules::composer::execute(config, args),
+        Modules::Db(args) => modules::db::execute(config, args),
+        Modules::Down(args) => modules::down::execute(config, args),
+        Modules::Info => modules::info::execute(config),
+        Modules::Lint(args) => modules::lint::execute(config, args, true),
+        Modules::ListRepoRemotes => modules::list_repo_remotes::execute(config),
+        Modules::Npm(args) => modules::npm::execute(args),
+        Modules::OpenSearch(args) => modules::opensearch::execute(config, args),
+        Modules::Pull(args) => modules::pull::execute(config, args),
+        Modules::Recreate(args) => modules::recreate::execute(config, args),
+        Modules::Run(args) => modules::run::execute(config, args),
+        Modules::Security(args) => modules::security::execute(config, args),
+        Modules::SetupGerrit => modules::setup_gerrit::execute(config, None),
+        Modules::SetupGithub => modules::setup_github::execute(config, None),
         Modules::Shell => modules::run::execute(config, RunArgs {
             script: "shell".into(),
             ..Default::default()
-        })?,
-        Modules::Sql(args) => modules::sql::execute(config, args)?,
+        }),
+        Modules::Sql(args) => modules::sql::execute(config, args),
         Modules::Update => modules::run::execute(config, RunArgs {
             script: "update".into(),
             extra_args: vec!["--quick".into()],
-        })?,
-        Modules::Up => modules::up::execute(config)?,
+        }),
+        Modules::Up => modules::up::execute(config),
     }
-
-    Ok(())
 }
