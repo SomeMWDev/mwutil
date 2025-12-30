@@ -1,4 +1,4 @@
-use std::fs;
+use std::{env, fs};
 use std::path::PathBuf;
 use std::process::Command;
 use std::str::FromStr;
@@ -29,19 +29,22 @@ pub struct CreatePatchArgs {
     use_branch_name: bool,
 }
 
-pub fn execute(config: &MWUtilConfig, args: SecurityArgs) -> anyhow::Result<()> {
+pub fn execute(config: Option<&MWUtilConfig>, args: SecurityArgs) -> anyhow::Result<()> {
     match args.command {
         SecurityCommand::CreatePatch(create_patch_args) => create_patch(config, create_patch_args),
     }
 }
 
-fn create_patch(config: &MWUtilConfig, args: CreatePatchArgs) -> anyhow::Result<()> {
-    let folder = PathBuf::from_str(
-        config.security_patch_folder
-            .clone()
-            .as_deref()
-            .ok_or_else(|| anyhow!("SECURITY_PATCH_FOLDER must be set!"))?
-    )?;
+fn create_patch(config: Option<&MWUtilConfig>, args: CreatePatchArgs) -> anyhow::Result<()> {
+    let folder = config
+        .map(|c| {
+            c.security_patch_folder
+                .clone()
+                .as_deref()
+                .map(|s| PathBuf::from_str(s).unwrap())
+        })
+        .unwrap_or_default()
+        .unwrap_or(env::current_dir()?);
     if !folder.exists() {
         fs::create_dir(&folder)?;
     }
@@ -66,9 +69,13 @@ fn create_patch(config: &MWUtilConfig, args: CreatePatchArgs) -> anyhow::Result<
     }
 
     let patch_file = folder.join(format!("{name}.patch"));
-    Command::new("git")
+    let status = Command::new("git")
         .args(["format-patch", "HEAD^", "--output", patch_file.to_str().unwrap()])
-        .output()?;
+        .status()?;
+    if !status.success() {
+        bail!("Failed to create patch!");
+    }
+
     println!("Patch created at {}", patch_file.to_str().unwrap());
 
     Ok(())
