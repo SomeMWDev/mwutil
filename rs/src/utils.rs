@@ -1,15 +1,15 @@
 use crate::config::{load_mwutil_config, MWUtilConfig};
 use crate::exec::create_docker_compose_command;
 use crate::types::MWVersion;
-use anyhow::anyhow;
+use anyhow::Context;
 use clap_complete::CompletionCandidate;
+use console::style;
+use indicatif::ProgressBar;
 use regex::Regex;
 use std::fs;
 use std::path::PathBuf;
 use std::process::Command;
 use std::time::Duration;
-use console::style;
-use indicatif::ProgressBar;
 
 pub fn container_completer(_current: &std::ffi::OsStr) -> Vec<CompletionCandidate> {
     let config = load_mwutil_config(false)
@@ -46,7 +46,7 @@ pub fn set_git_config(option: &str, value: &str, repo_folder: &PathBuf) -> anyho
         .args(["config", "--local", option, value])
         .current_dir(repo_folder)
         .status()
-        .map_err(|e| anyhow!("Failed to set git option: {}", e))?;
+        .context("Failed to set git option!")?;
     Ok(())
 }
 
@@ -57,25 +57,21 @@ pub struct SpinnerSequence {
 }
 
 impl SpinnerSequence {
-
     pub fn next(&mut self, text: &str) {
-        self.next_static(text);
-
-        let spinner = ProgressBar::new_spinner();
-        spinner.enable_steady_tick(Duration::from_millis(100));
-    }
-
-    pub fn next_static(&mut self, text: &str) {
-        if let Some(spinner) = self.last.as_ref() {
+        if let Some(spinner) = &self.last {
             spinner.finish();
         }
         self.cur += 1;
 
         println!("{} {text}...", style(format!("[{}/{}]", self.cur, self.max)).bold().dim());
+
+        let spinner = ProgressBar::new_spinner();
+        spinner.enable_steady_tick(Duration::from_millis(100));
+        self.last = Some(spinner);
     }
 
     pub fn finish(self) {
-        if let Some(spinner) = self.last.as_ref() {
+        if let Some(spinner) = self.last {
             spinner.finish();
         }
     }
@@ -89,7 +85,6 @@ impl SpinnerSequence {
         seq.next(initial_text);
         seq
     }
-
 }
 
 pub fn capitalize(s: &str) -> String {
