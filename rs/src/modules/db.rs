@@ -5,7 +5,7 @@ use crate::modules::down::DownArgs;
 use crate::modules::recreate::RecreateArgs;
 use crate::modules::{down, recreate};
 use crate::utils::SpinnerSequence;
-use anyhow::{anyhow, Context};
+use anyhow::{anyhow, bail, Context};
 use clap::{Args, Subcommand};
 use clap_complete::ArgValueCompleter;
 use clap_complete::CompletionCandidate;
@@ -150,12 +150,8 @@ pub fn delete_all_dumps(config: &MWUtilConfig) -> anyhow::Result<()> {
     Ok(())
 }
 
-pub fn import_dump(config: &MWUtilConfig, args: DumpSubArgs) -> anyhow::Result<()> {
-    let dump_file = get_dump(config, &args.name, Existence::MustExist)?;
-    let bytes = fs::read(dump_file).context("Failed to read dump file")?;
-
-    let mut spinner = SpinnerSequence::new(4, "Dropping database");
-    run_sql_query(
+pub fn drop_mw_database(config: &MWUtilConfig) -> anyhow::Result<()> {
+    let status = run_sql_query(
         config,
         DbCommandUser::Mw,
         Some(DbCommandDatabase::None),
@@ -164,6 +160,18 @@ pub fn import_dump(config: &MWUtilConfig, args: DumpSubArgs) -> anyhow::Result<(
             config.mw_database.clone().ok_or_else(|| anyhow!("MW database not set!"))?
         ).as_str(),
     ).context("Failed to drop database")?;
+    if !status.success() {
+        bail!("Failed to drop database: Command returned an error!")
+    }
+    Ok(())
+}
+
+pub fn import_dump(config: &MWUtilConfig, args: DumpSubArgs) -> anyhow::Result<()> {
+    let dump_file = get_dump(config, &args.name, Existence::MustExist)?;
+    let bytes = fs::read(dump_file).context("Failed to read dump file")?;
+
+    let mut spinner = SpinnerSequence::new(4, "Dropping database");
+    drop_mw_database(config)?;
 
     spinner.next("Creating database");
     run_sql_query(

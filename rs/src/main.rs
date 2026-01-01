@@ -14,6 +14,7 @@ use crate::modules::security::SecurityArgs;
 use crate::modules::sql::SqlArgs;
 use anyhow::bail;
 use clap::{CommandFactory, Parser, Subcommand};
+use crate::modules::reset::ResetArgs;
 
 mod config;
 mod modules;
@@ -58,6 +59,8 @@ pub enum Modules {
     Pull(PullArgs),
     /// Recreates containers
     Recreate(RecreateArgs),
+    /// Resets various parts of the local dev environment
+    Reset(ResetArgs),
     /// Runs a maintenance script
     Run(RunArgs),
     /// Allows creating and pushing security patches
@@ -102,6 +105,7 @@ pub fn run_module(module: Modules, config: Option<&MWUtilConfig>) -> anyhow::Res
         Modules::OpenSearch(args) => modules::opensearch::execute(config.unwrap(), args),
         Modules::Pull(args) => modules::pull::execute(config.unwrap(), args),
         Modules::Recreate(args) => modules::recreate::execute(config.unwrap(), args),
+        Modules::Reset(args) => modules::reset::execute(config.unwrap(), args),
         Modules::Run(args) => modules::run::execute(config.unwrap(), args),
         Modules::Security(args) => modules::security::execute(config, args),
         Modules::SetupGerrit => modules::setup_gerrit::execute(config.unwrap(), None),

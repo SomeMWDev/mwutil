@@ -4,7 +4,7 @@ use crate::utils::container_completer;
 use clap::Args;
 use clap_complete::ArgValueCompleter;
 
-#[derive(Args)]
+#[derive(Args, Default)]
 pub struct RecreateArgs {
     /// The container to recreate
     #[arg(add = ArgValueCompleter::new(container_completer))]

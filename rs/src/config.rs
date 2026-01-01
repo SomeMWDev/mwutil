@@ -82,6 +82,11 @@ pub struct MWUtilConfig {
     pub mw_database: Option<String>,
     pub mw_install_path: String,
     pub mw_branch: String,
+    pub mw_server: Option<String>,
+    pub mw_script_path: Option<String>,
+    pub mw_language: Option<String>,
+    pub mw_user: Option<String>,
+    pub mw_password: Option<String>,
 
     pub gerrit_username: Option<String>,
     pub git_email: Option<String>,
@@ -145,6 +150,11 @@ pub fn load_mwutil_config(debug: bool) -> anyhow::Result<MWUtilConfig> {
         mw_database: env::var("MWC_DB_DATABASE").ok(),
         mw_install_path,
         mw_branch,
+        mw_server: env::var("MW_SERVER").ok(),
+        mw_script_path: env::var("MW_SCRIPT_PATH").ok(),
+        mw_language: env::var("MW_LANG").ok(),
+        mw_user: env::var("MEDIAWIKI_USER").ok(),
+        mw_password: env::var("MEDIAWIKI_PASSWORD").ok(),
 
         gerrit_username: env::var("GERRIT_USERNAME").ok(),
         git_email: env::var("GIT_EMAIL").ok(),

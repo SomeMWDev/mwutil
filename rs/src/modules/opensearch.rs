@@ -14,7 +14,7 @@ use std::process::Command;
 #[derive(Args)]
 pub struct OpenSearchArgs {
     #[command(subcommand)]
-    command: OpenSearchCommand,
+    pub command: OpenSearchCommand,
 }
 
 #[derive(Subcommand)]

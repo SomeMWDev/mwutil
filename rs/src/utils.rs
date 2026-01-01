@@ -51,9 +51,9 @@ pub fn set_git_config(option: &str, value: &str, repo_folder: &PathBuf) -> anyho
 }
 
 pub struct SpinnerSequence {
-    cur: u8,
-    max: u8,
-    last: Option<ProgressBar>,
+    pub cur: u8,
+    pub max: u8,
+    pub last: Option<ProgressBar>,
 }
 
 impl SpinnerSequence {
