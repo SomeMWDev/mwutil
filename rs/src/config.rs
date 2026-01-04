@@ -101,25 +101,7 @@ pub struct MWUtilConfig {
 pub fn load_mwutil_config(debug: bool) -> anyhow::Result<MWUtilConfig> {
     let base_dir = find_base_dir()
         .ok_or_else(|| anyhow!("Failed to find basedir"))?;
-
-    let file = base_dir.join(CONFIG_FILE_NAME);
-    let contents = fs::read_to_string(&file)
-        .context("Failed to read config file")?;
-    let json_data: serde_json::Value = serde_json::from_str(&contents)
-        .context("Failed to parse config file as JSON")?;
-
-    fn get_dir(json_data: &serde_json::Value, base_dir: &Path, key: &str, default: &str) -> PathBuf {
-        base_dir.join(
-            json_data
-                .get(key)
-                .and_then(|v| v.as_str())
-                .unwrap_or(default)
-        )
-    }
-
-    // TODO we probably need to hardcode this instead and no longer load it from JSON
-    // since we use hardcoded paths in autocompletion code to improve performance
-    let config_dir = get_dir(&json_data, &base_dir, "configdir", "config");
+    let config_dir = base_dir.join("config");
 
     load_env(&config_dir);
 
@@ -139,8 +121,8 @@ pub fn load_mwutil_config(debug: bool) -> anyhow::Result<MWUtilConfig> {
 
     Ok(MWUtilConfig {
         config_dir,
-        core_dir: get_dir(&json_data, &base_dir, "coredir", "core"),
-        dump_dir: get_dir(&json_data, &base_dir, "dumpdir", "dumps"),
+        core_dir: base_dir.join("core"),
+        dump_dir: base_dir.join("dumps"),
         base_dir,
 
         db_type,
