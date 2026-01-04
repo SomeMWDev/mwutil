@@ -22,10 +22,6 @@ impl DBType {
             None
         }
     }
-
-    pub fn all_values() -> Vec<Self> {
-        vec![DBType::Mariadb, DBType::Mysql]
-    }
 }
 
 impl Display for DBType {
