@@ -257,8 +257,19 @@ pub fn switch(config: &MWUtilConfig, args: SwitchArgs) -> anyhow::Result<()> {
     })?;
 
     spinner.next("Waiting for the database to be ready");
-    // TODO suboptimal
-    sleep(Duration::from_secs(10));
+    loop {
+        let res = run_sql_query(
+            &new_config,
+            DbCommandUser::Mw,
+            Some(DbCommandDatabase::Mw),
+            "SELECT 1;"
+        );
+        if res.is_ok_and(|s|s.success()) {
+            println!("Database is ready!");
+            break
+        }
+        sleep(Duration::from_secs(1))
+    }
 
     spinner.next("Importing dump");
     import_dump(&new_config, DumpSubArgs {
