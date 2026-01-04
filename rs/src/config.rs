@@ -4,8 +4,7 @@ use regex::Regex;
 use std::fmt::Display;
 use std::path::{Path, PathBuf};
 use std::{env, fs};
-
-const CONFIG_FILE_NAME: &str = ".mwutil.json";
+use crate::constants::CONFIG_FILE_NAME;
 
 #[derive(Clone, Debug, PartialEq, ValueEnum)]
 pub enum DBType {
@@ -106,7 +105,9 @@ pub fn load_mwutil_config(debug: bool) -> anyhow::Result<MWUtilConfig> {
     load_env(&config_dir);
 
     let db_type = DBType::parse(
-        env::var("MWC_DB_TYPE").unwrap_or(String::from("mariadb")).as_str()
+        env::var("MWC_DB_TYPE")
+            .unwrap_or(String::from("mariadb"))
+            .as_str()
     ).unwrap_or(DBType::Mariadb);
     let mw_install_path = env::var("MW_INSTALL_PATH")
         .unwrap_or(String::from("/var/www/html/w"));
@@ -114,7 +115,7 @@ pub fn load_mwutil_config(debug: bool) -> anyhow::Result<MWUtilConfig> {
         .unwrap_or(String::from("master"));
 
     let compose_profiles: Vec<String> = env::var("COMPOSE_PROFILES")
-        .context("COMPOSER_PROFILES env variable is required")?
+        .context("The COMPOSER_PROFILES env variable is required")?
         .split(",")
         .map(String::from)
         .collect();
