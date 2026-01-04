@@ -12,7 +12,7 @@ pub struct ContainerActionArgs {
 }
 
 fn execute(config: &MWUtilConfig, args: ContainerActionArgs, compose_args: &[&str]) -> anyhow::Result<()> {
-    let mut cmd = create_docker_compose_command(config);
+    let mut cmd = create_docker_compose_command(&config.base_dir);
     cmd.args(compose_args);
     if let Some(container) = args.container {
         cmd.arg(container);

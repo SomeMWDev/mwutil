@@ -1,4 +1,4 @@
-use crate::config::{load_mwutil_config, MWUtilConfig};
+use crate::config::{find_base_dir, MWUtilConfig};
 use crate::exec::create_docker_compose_command;
 use crate::types::MWVersion;
 use anyhow::Context;
@@ -12,9 +12,9 @@ use std::process::Command;
 use std::time::Duration;
 
 pub fn container_completer(_current: &std::ffi::OsStr) -> Vec<CompletionCandidate> {
-    let config = load_mwutil_config(false)
-        .expect("Failed to load config!");
-    create_docker_compose_command(&config)
+    let base_dir = find_base_dir()
+        .expect("Failed to load base dir!");
+    create_docker_compose_command(&base_dir)
         .args(["ps", "--services"])
         .output()
         .ok()

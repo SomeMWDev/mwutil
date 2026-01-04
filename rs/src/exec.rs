@@ -2,6 +2,7 @@ use crate::config::MWUtilConfig;
 use crate::types::Container;
 use anyhow::{anyhow, Context};
 use std::io::{BufRead, BufReader};
+use std::path::Path;
 use std::process::{Command, ExitStatus, Stdio};
 use std::thread;
 use std::thread::JoinHandle;
@@ -23,7 +24,7 @@ impl ContainerSupport for Command {
         container: Container,
         exec_options: Option<&[String]>
     ) -> anyhow::Result<Self> {
-        let mut docker_cmd = create_docker_compose_command(config);
+        let mut docker_cmd = create_docker_compose_command(&config.base_dir);
         let mut cmd_args: Vec<String> = vec![
             "exec".into(),
         ];
@@ -103,10 +104,10 @@ impl CommandExt for Command {
     }
 }
 
-pub fn create_docker_compose_command(config: &MWUtilConfig) -> Command {
+pub fn create_docker_compose_command(base_dir: &Path) -> Command {
     let mut cmd = Command::new("docker");
     cmd.args(["compose", "--env-file", "config/.env", "--progress", "plain"]);
-    cmd.current_dir(config.base_dir.clone());
+    cmd.current_dir(base_dir);
     cmd
 }
 
