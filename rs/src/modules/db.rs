@@ -252,7 +252,7 @@ pub fn switch(config: &MWUtilConfig, args: SwitchArgs) -> anyhow::Result<()> {
     })?;
 
     spinner.next("Starting new container");
-    container_action::up(config, ContainerActionArgs {
+    container_action::up(&new_config, ContainerActionArgs {
         container: Some(args.to.get_container_name().into())
     })?;
 
@@ -317,7 +317,7 @@ fn get_dump(
 ) -> anyhow::Result<PathBuf> {
     let re = Regex::new(ALLOWED_DUMP_REGEX)?;
     if !re.is_match(name) {
-        anyhow::bail!(
+        bail!(
             "{} dump name \"{}\"!",
             style("Invalid").red(),
             name
@@ -330,13 +330,13 @@ fn get_dump(
     }
     let dump_file = config.dump_dir.join(format!("{}.sql", name));
     if existence_check == Existence::MustExist && !dump_file.exists() {
-        anyhow::bail!(
+        bail!(
             "Dump file {} at {}!",
             style("does not exist").red(),
             dump_file.to_string_lossy()
         );
     } else if existence_check == Existence::MustNotExist && dump_file.exists() {
-        anyhow::bail!(
+        bail!(
             "Dump file {} at {}!",
             style("already exists").red(),
             dump_file.to_string_lossy()
