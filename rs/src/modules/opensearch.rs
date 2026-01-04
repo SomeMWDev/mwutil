@@ -1,15 +1,14 @@
 use crate::config::{disable_profile, enable_profile, MWUtilConfig};
 use crate::constants::{OPENSEARCH_CONTAINER, OPENSEARCH_PROFILE};
 use crate::exec::ContainerSupport;
-use crate::modules::down::DownArgs;
-use crate::modules::recreate::RecreateArgs;
 use crate::modules::run::RunArgs;
-use crate::modules::{down, recreate, run};
+use crate::modules::{container_action, run};
 use crate::types::Container;
 use crate::utils::SpinnerSequence;
 use clap::{Args, Subcommand};
 use console::style;
 use std::process::Command;
+use crate::modules::container_action::ContainerActionArgs;
 
 #[derive(Args)]
 pub struct OpenSearchArgs {
@@ -42,7 +41,9 @@ fn disable(config: &MWUtilConfig) -> anyhow::Result<()> {
             style("already disabled").red(),
         )
     }
-    down::execute(config, DownArgs { container: Some(OPENSEARCH_CONTAINER.into()) })?;
+    container_action::down(config, ContainerActionArgs {
+        container: Some(OPENSEARCH_CONTAINER.into())
+    })?;
     disable_profile(&mut config.clone(), OPENSEARCH_PROFILE)
 }
 
@@ -54,7 +55,9 @@ fn enable(config: &MWUtilConfig) -> anyhow::Result<()> {
             style("already enabled").red(),
         )
     }
-    recreate::execute(config, RecreateArgs { container: Some(OPENSEARCH_CONTAINER.into()) })?;
+    container_action::up(config, ContainerActionArgs {
+        container: Some(OPENSEARCH_CONTAINER.into())
+    })?;
     enable_profile(&mut config.clone(), profile)
 }
 

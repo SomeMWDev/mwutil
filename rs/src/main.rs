@@ -3,17 +3,16 @@ use crate::modules::bash::BashArgs;
 use crate::modules::clone::CloneArgs;
 use crate::modules::composer::ComposerArgs;
 use crate::modules::db::DbArgs;
-use crate::modules::down::DownArgs;
 use crate::modules::lint::LintArgs;
 use crate::modules::npm::NpmArgs;
 use crate::modules::opensearch::OpenSearchArgs;
 use crate::modules::pull::PullArgs;
-use crate::modules::recreate::RecreateArgs;
 use crate::modules::run::RunArgs;
 use crate::modules::security::SecurityArgs;
 use crate::modules::sql::SqlArgs;
 use anyhow::bail;
 use clap::{CommandFactory, Parser, Subcommand};
+use crate::modules::container_action::ContainerActionArgs;
 use crate::modules::reset::ResetArgs;
 
 mod config;
@@ -44,7 +43,7 @@ pub enum Modules {
     /// Allows managing the database
     Db(DbArgs),
     /// Stops containers
-    Down(DownArgs),
+    Down(ContainerActionArgs),
     /// Prints info about the environment
     Info,
     /// Runs a linter
@@ -58,7 +57,7 @@ pub enum Modules {
     /// Pulls a local repository
     Pull(PullArgs),
     /// Recreates containers
-    Recreate(RecreateArgs),
+    Recreate(ContainerActionArgs),
     /// Resets various parts of the local dev environment
     Reset(ResetArgs),
     /// Runs a maintenance script
@@ -73,8 +72,8 @@ pub enum Modules {
     Shell,
     /// Starts an interactive SQL shell
     Sql(SqlArgs),
-    /// Starts all containers
-    Up,
+    /// Starts containers
+    Up(ContainerActionArgs),
     /// Runs update.php
     Update,
 }
@@ -97,14 +96,14 @@ pub fn run_module(module: Modules, config: Option<&MWUtilConfig>) -> anyhow::Res
         Modules::Clone(args) => modules::clone::execute(config.unwrap(), args),
         Modules::Composer(args) => modules::composer::execute(config.unwrap(), args),
         Modules::Db(args) => modules::db::execute(config.unwrap(), args),
-        Modules::Down(args) => modules::down::execute(config.unwrap(), args),
+        Modules::Down(args) => modules::container_action::down(config.unwrap(), args),
         Modules::Info => modules::info::execute(config.unwrap()),
         Modules::Lint(args) => modules::lint::execute(config.unwrap(), args, true),
         Modules::ListRepoRemotes => modules::list_repo_remotes::execute(config.unwrap()),
         Modules::Npm(args) => modules::npm::execute(args),
         Modules::OpenSearch(args) => modules::opensearch::execute(config.unwrap(), args),
         Modules::Pull(args) => modules::pull::execute(config.unwrap(), args),
-        Modules::Recreate(args) => modules::recreate::execute(config.unwrap(), args),
+        Modules::Recreate(args)=> modules::container_action::recreate(config.unwrap(), args),
         Modules::Reset(args) => modules::reset::execute(config.unwrap(), args),
         Modules::Run(args) => modules::run::execute(config.unwrap(), args),
         Modules::Security(args) => modules::security::execute(config, args),
@@ -119,7 +118,7 @@ pub fn run_module(module: Modules, config: Option<&MWUtilConfig>) -> anyhow::Res
             script: "update".into(),
             extra_args: vec!["--quick".into()],
         }),
-        Modules::Up => modules::up::execute(config.unwrap()),
+        Modules::Up(args) => modules::container_action::up(config.unwrap(), args),
     }
 }
 

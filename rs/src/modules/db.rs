@@ -1,9 +1,7 @@
 use crate::config::{load_mwutil_config, update_env_var, update_profiles, DBType, MWUtilConfig};
 use crate::constants::{ALLOWED_DUMP_REGEX, MEDIAWIKI_CONTAINER};
 use crate::exec::{create_db_command, run_sql_query, DbCommandDatabase, DbCommandType, DbCommandUser};
-use crate::modules::down::DownArgs;
-use crate::modules::recreate::RecreateArgs;
-use crate::modules::{down, recreate};
+use crate::modules::{container_action};
 use crate::utils::SpinnerSequence;
 use anyhow::{anyhow, bail, Context};
 use clap::{Args, Subcommand};
@@ -21,6 +19,7 @@ use std::path::PathBuf;
 use std::process::Stdio;
 use std::thread::sleep;
 use std::time::Duration;
+use crate::modules::container_action::ContainerActionArgs;
 
 #[derive(Args)]
 pub struct DbArgs {
@@ -200,7 +199,7 @@ pub fn import_dump(config: &MWUtilConfig, args: DumpSubArgs) -> anyhow::Result<(
     process.wait()?;
 
     spinner.next("Restarting MW container");
-    recreate::execute(config, RecreateArgs {
+    container_action::recreate(config, ContainerActionArgs {
         container: Some(String::from(MEDIAWIKI_CONTAINER))
     })?;
     spinner.finish();
@@ -248,13 +247,12 @@ pub fn switch(config: &MWUtilConfig, args: SwitchArgs) -> anyhow::Result<()> {
     update_env_var(config, "MWC_DB_HOST", args.to.get_container_name())?;
 
     spinner.next("Stopping old container");
-    down::execute(&new_config, DownArgs {
+    container_action::down(config, ContainerActionArgs {
         container: Some(config.db_type.get_container_name().into())
     })?;
 
     spinner.next("Starting new container");
-    // TODO use up instead?
-    recreate::execute(&new_config, RecreateArgs {
+    container_action::up(config, ContainerActionArgs {
         container: Some(args.to.get_container_name().into())
     })?;
 
