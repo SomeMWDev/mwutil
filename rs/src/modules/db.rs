@@ -1,4 +1,4 @@
-use crate::config::{load_mwutil_config, update_env_var, update_profiles, DBType, MWUtilConfig};
+use crate::config::{find_base_dir, update_env_var, update_profiles, DBType, MWUtilConfig};
 use crate::constants::{ALLOWED_DUMP_REGEX, MEDIAWIKI_CONTAINER};
 use crate::exec::{create_db_command, run_sql_query, DbCommandDatabase, DbCommandType, DbCommandUser};
 use crate::modules::{container_action};
@@ -15,7 +15,7 @@ use regex::Regex;
 use std::ffi::OsStr;
 use std::fs;
 use std::io::Write;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::Stdio;
 use std::thread::sleep;
 use std::time::Duration;
@@ -129,7 +129,7 @@ pub fn delete_dump(config: &MWUtilConfig, args: DumpSubArgs) -> anyhow::Result<(
 }
 
 pub fn delete_all_dumps(config: &MWUtilConfig) -> anyhow::Result<()> {
-    let dump_files: Vec<PathBuf> = get_all_dump_files(config)
+    let dump_files: Vec<PathBuf> = get_all_dump_files(&config.dump_dir)
         .ok_or_else(|| anyhow!("Failed to get all dump files!"))?
         .collect();
 
@@ -208,7 +208,7 @@ pub fn import_dump(config: &MWUtilConfig, args: DumpSubArgs) -> anyhow::Result<(
 }
 
 pub fn list_dumps(config: &MWUtilConfig) -> anyhow::Result<()> {
-    let dump_files = get_all_dump_files(config)
+    let dump_files = get_all_dump_files(&config.dump_dir)
         .ok_or_else(|| anyhow!("Failed to get all dump files!"))?;
     for file in dump_files {
         println!("{}", file.file_stem()
@@ -286,8 +286,8 @@ pub fn switch(config: &MWUtilConfig, args: SwitchArgs) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn get_all_dump_files(config: &MWUtilConfig) -> Option<impl Iterator<Item = PathBuf>> {
-    let Ok(files) = fs::read_dir(&config.dump_dir) else {
+fn get_all_dump_files(dump_dir: &Path) -> Option<impl Iterator<Item = PathBuf>> {
+    let Ok(files) = fs::read_dir(dump_dir) else {
         return None;
     };
     Some(
@@ -304,10 +304,11 @@ fn get_all_dump_files(config: &MWUtilConfig) -> Option<impl Iterator<Item = Path
 }
 
 fn dump_completer(_current: &std::ffi::OsStr) -> Vec<CompletionCandidate> {
-    let Ok(config) = load_mwutil_config(false) else {
+    let Some(base_dir) = find_base_dir() else {
         return vec![];
     };
-    let Some(files) = get_all_dump_files(&config) else {
+    let dump_dir = base_dir.join("dumps");
+    let Some(files) = get_all_dump_files(&dump_dir) else {
         return vec![];
     };
     files
