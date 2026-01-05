@@ -97,14 +97,14 @@ pub fn reset_database(config: &MWUtilConfig) -> anyhow::Result<()> {
     let result = Modules::Run(RunArgs {
         script: "install".to_string(),
         extra_args: install_args,
-    }).run(Some(config));
+    }).run(config);
 
     fs::rename(local_settings_tmp, local_settings)?;
 
     result?;
 
-    Modules::Update.run(Some(config))?;
-    Modules::Recreate(Default::default()).run(Some(config))?;
+    Modules::Update.run(config)?;
+    Modules::Recreate(Default::default()).run(config)?;
 
     Ok(())
 }

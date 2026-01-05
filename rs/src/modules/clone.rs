@@ -1,8 +1,7 @@
 use crate::config::MWUtilConfig;
 use crate::exec::CommandExt;
-use crate::modules::composer::ComposerArgs;
 use crate::modules::pull::{PullArgs, PullRepoType};
-use crate::modules::{composer, pull, setup_gerrit, setup_github};
+use crate::modules::{pull, setup_gerrit, setup_github};
 use crate::types::{CloneMethod, RepoOrigin, RepoType};
 use crate::{Modules};
 use clap::Args;
@@ -76,10 +75,10 @@ pub fn execute(config: &MWUtilConfig, args: CloneArgs) -> anyhow::Result<()> {
     }
 
     if args.composer {
-        composer::execute(config, ComposerArgs::default())?;
+        Modules::Composer(Default::default()).run(config)?;
     }
     if args.repo_type == RepoType::Extension {
-        Modules::Update.run(Some(config))?;
+        Modules::Update.run(config)?;
     }
 
     Ok(())

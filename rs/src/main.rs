@@ -84,11 +84,15 @@ fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
     let config = load_mwutil_config(cli.debug);
 
-    cli.module.run(config.as_ref().ok())
+    cli.module.run_globally(config.as_ref().ok())
 }
 
 impl Modules {
-    pub fn run(self, config: Option<&MWUtilConfig>) -> anyhow::Result<()> {
+    pub fn run(self, config: &MWUtilConfig) -> anyhow::Result<()> {
+        self.run_globally(Some(config))
+    }
+
+    pub fn run_globally(self, config: Option<&MWUtilConfig>) -> anyhow::Result<()> {
         if config.is_none() && !self.works_globally() {
             bail!("The selected module only works inside of an mw-dev-kit environment!");
         }
