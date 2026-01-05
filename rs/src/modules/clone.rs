@@ -48,7 +48,8 @@ pub fn execute(config: &MWUtilConfig, args: CloneArgs) -> anyhow::Result<()> {
     let name = args.name.unwrap_or(repo_data.0);
     let url = repo_data.1;
     let target_folder = config.base_dir.join(args.repo_type.get_plural_name());
-    let (status, _stdout, stderr) = clone(&url, &name, &target_folder, args.shallow, args.branch.as_ref())?;
+    let branch = args.branch.unwrap_or(config.mw_branch.clone());
+    let (status, _stdout, stderr) = clone(&url, &name, &target_folder, args.shallow, Some(&branch))?;
     println!("Git clone exited with status: {}", status);
     if status.into_raw() == 32768 {
         if stderr.contains("already exists and is not an empty directory") {
