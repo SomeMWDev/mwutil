@@ -61,8 +61,8 @@ pub enum CloneMethod {
 impl Display for CloneMethod {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
-            CloneMethod::Ssh => write!(f, "ssh"),
-            CloneMethod::Https => write!(f, "https"),
+            CloneMethod::Ssh => f.write_str("ssh"),
+            CloneMethod::Https => f.write_str("https"),
         }
     }
 }
