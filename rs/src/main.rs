@@ -130,6 +130,6 @@ impl Modules {
     }
 
     fn works_globally(&self) -> bool {
-        matches!(self, Modules::Security(_))
+        matches!(self, Modules::Npm(_) | Modules::Security(_))
     }
 }
