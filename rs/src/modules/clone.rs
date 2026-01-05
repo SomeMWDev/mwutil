@@ -9,6 +9,7 @@ use regex::Regex;
 use std::os::unix::prelude::ExitStatusExt;
 use std::path::Path;
 use std::process::{Command, ExitStatus};
+use anyhow::bail;
 
 #[derive(Args)]
 pub struct CloneArgs {
@@ -63,7 +64,7 @@ pub fn execute(config: &MWUtilConfig, args: CloneArgs) -> anyhow::Result<()> {
         let (status, stdout, stderr) = clone(&url, &name, &target_folder, args.shallow, None)?;
         println!("Git clone exited with status: {}", status);
         if !status.success() {
-            return Err(anyhow::anyhow!("Git clone failed: {}\n{}", stdout, stderr));
+            bail!("Git clone failed: {stdout}\n{stderr}");
         }
     }
 
