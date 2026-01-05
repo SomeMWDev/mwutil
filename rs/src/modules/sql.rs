@@ -1,8 +1,8 @@
 use crate::config::MWUtilConfig;
 use crate::exec::{create_db_command, DbCommandType, DbCommandUser};
-use crate::modules::run;
 use crate::modules::run::RunArgs;
 use clap::Args;
+use crate::Modules;
 
 #[derive(Args)]
 pub struct SqlArgs {
@@ -27,9 +27,9 @@ pub fn execute(config: &MWUtilConfig, args: SqlArgs) -> anyhow::Result<()> {
 
         Ok(())
     } else {
-        run::execute(config, RunArgs {
+        Modules::Run(RunArgs {
             script: "sql".to_string(),
             extra_args: args.extra_args,
-        })
+        }).run(config)
     }
 }

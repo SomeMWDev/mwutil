@@ -2,12 +2,12 @@ use crate::config::{disable_profile, enable_profile, MWUtilConfig};
 use crate::constants::{OPENSEARCH_CONTAINER, OPENSEARCH_PROFILE};
 use crate::exec::ContainerSupport;
 use crate::modules::run::RunArgs;
-use crate::modules::{container_action, run};
 use crate::types::Container;
 use crate::utils::SpinnerSequence;
 use clap::{Args, Subcommand};
 use console::style;
 use std::process::Command;
+use crate::Modules;
 use crate::modules::container_action::ContainerActionArgs;
 
 #[derive(Args)]
@@ -41,9 +41,9 @@ fn disable(config: &MWUtilConfig) -> anyhow::Result<()> {
             style("already disabled").red(),
         )
     }
-    container_action::down(config, ContainerActionArgs {
+    Modules::Down(ContainerActionArgs {
         container: Some(OPENSEARCH_CONTAINER.into())
-    })?;
+    }).run(config)?;
     disable_profile(&mut config.clone(), OPENSEARCH_PROFILE)
 }
 
@@ -55,9 +55,9 @@ fn enable(config: &MWUtilConfig) -> anyhow::Result<()> {
             style("already enabled").red(),
         )
     }
-    container_action::up(config, ContainerActionArgs {
+    Modules::Up(ContainerActionArgs {
         container: Some(OPENSEARCH_CONTAINER.into())
-    })?;
+    }).run(config)?;
     enable_profile(&mut config.clone(), profile)
 }
 
@@ -69,14 +69,14 @@ fn reset(config: &MWUtilConfig) -> anyhow::Result<()> {
         .status()?;
 
     spinner.next("Re-indexing wiki pages");
-    run::execute(config, RunArgs {
+    Modules::Run(RunArgs {
         script: "CirrusSearch:UpdateSearchIndexConfig".into(),
         extra_args: vec!["--startOver".into()],
-    })?;
-    run::execute(config, RunArgs {
+    }).run(config)?;
+    Modules::Run(RunArgs {
         script: "CirrusSearch:ForceSearchIndex".into(),
         ..Default::default()
-    })?;
+    }).run(config)?;
     spinner.finish();
     Ok(())
 }

@@ -2,12 +2,12 @@ use crate::config::MWUtilConfig;
 use crate::exec::ContainerSupport;
 use crate::modules::composer::ComposerArgs;
 use crate::modules::npm::NpmArgs;
-use crate::modules::{composer, npm};
 use crate::types::Container;
 use clap::{Args, ValueEnum};
 use std::path::PathBuf;
 use std::process::{Command, ExitStatus};
 use std::str::FromStr;
+use crate::Modules;
 
 #[derive(Clone, ValueEnum)]
 enum LintType {
@@ -84,14 +84,14 @@ pub fn execute(config: &MWUtilConfig, args: LintArgs, update: bool) -> anyhow::R
     if update && !status.success() && status.code() == Some(127) {
         println!("Failed to lint. Attempting to update dependencies...");
         match args.lint_type {
-            LintType::Eslint => npm::execute(NpmArgs {
+            LintType::Eslint => Modules::Npm(NpmArgs {
                 folder: args.folder.clone(),
                 ..Default::default()
-            })?,
-            LintType::Phpcs => composer::execute(config, ComposerArgs {
+            }).run(config)?,
+            LintType::Phpcs => Modules::Composer(ComposerArgs {
                 folder: args.folder.clone(),
                 ..Default::default()
-            })?,
+            }).run(config)?,
         }
 
         return execute(config, args, false);

@@ -3,10 +3,10 @@ use anyhow::{anyhow, bail};
 use clap::{Args, ValueEnum};
 use crate::config::MWUtilConfig;
 use crate::constants::MEDIAWIKI_CONTAINER;
-use crate::modules::{db, opensearch};
 use crate::modules::opensearch::{OpenSearchArgs, OpenSearchCommand};
 use crate::modules::run::RunArgs;
 use crate::{Modules};
+use crate::modules::db;
 use crate::utils::SpinnerSequence;
 
 // only supports top-level files in images/ !
@@ -43,9 +43,9 @@ pub fn execute(config: &MWUtilConfig, args: ResetArgs) -> anyhow::Result<()> {
     }
     if actions.contains(&ResetActions::OpenSearch) {
         spinner.next("Resetting OpenSearch");
-        opensearch::execute(config, OpenSearchArgs {
+        Modules::OpenSearch(OpenSearchArgs {
             command: OpenSearchCommand::Reset,
-        })?;
+        }).run(config)?;
     }
     Ok(())
 }
