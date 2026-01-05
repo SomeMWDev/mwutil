@@ -1,14 +1,14 @@
 use crate::config::MWUtilConfig;
 use crate::exec::CommandExt;
 use crate::modules::pull::{PullArgs, PullRepoType};
+use crate::modules::setup_repo::SetupRepoArgs;
 use crate::types::{CloneMethod, RepoOrigin, RepoType};
-use crate::{Modules};
+use crate::Modules;
 use clap::Args;
 use regex::Regex;
 use std::os::unix::prelude::ExitStatusExt;
 use std::path::Path;
 use std::process::{Command, ExitStatus};
-use crate::modules::setup_repo::SetupRepoArgs;
 
 #[derive(Args)]
 pub struct CloneArgs {

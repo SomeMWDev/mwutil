@@ -1,8 +1,8 @@
-use clap_complete::ArgValueCompleter;
-use clap::Args;
 use crate::config::MWUtilConfig;
 use crate::exec::create_docker_compose_command;
 use crate::utils::container_completer;
+use clap::Args;
+use clap_complete::ArgValueCompleter;
 
 #[derive(Args, Default)]
 pub struct ContainerActionArgs {

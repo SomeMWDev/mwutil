@@ -3,11 +3,11 @@ use crate::exec::ContainerSupport;
 use crate::modules::composer::ComposerArgs;
 use crate::modules::npm::NpmArgs;
 use crate::types::Container;
+use crate::Modules;
 use clap::{Args, ValueEnum};
 use std::path::PathBuf;
 use std::process::{Command, ExitStatus};
 use std::str::FromStr;
-use crate::Modules;
 
 #[derive(Clone, ValueEnum)]
 enum LintType {

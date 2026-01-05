@@ -1,13 +1,13 @@
-use std::fs;
-use anyhow::{anyhow, bail};
-use clap::{Args, ValueEnum};
 use crate::config::MWUtilConfig;
 use crate::constants::MEDIAWIKI_CONTAINER;
+use crate::modules::db;
 use crate::modules::opensearch::{OpenSearchArgs, OpenSearchCommand};
 use crate::modules::run::RunArgs;
-use crate::{Modules};
-use crate::modules::db;
 use crate::utils::SpinnerSequence;
+use crate::Modules;
+use anyhow::{anyhow, bail};
+use clap::{Args, ValueEnum};
+use std::fs;
 
 // only supports top-level files in images/ !
 const EXCLUDED_UPLOADS: [&str; 2] = ["README", ".htaccess"];

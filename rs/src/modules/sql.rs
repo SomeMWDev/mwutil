@@ -1,8 +1,8 @@
 use crate::config::MWUtilConfig;
 use crate::exec::{create_db_command, DbCommandType, DbCommandUser};
 use crate::modules::run::RunArgs;
-use clap::Args;
 use crate::Modules;
+use clap::Args;
 
 #[derive(Args)]
 pub struct SqlArgs {

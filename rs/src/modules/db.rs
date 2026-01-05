@@ -1,7 +1,9 @@
 use crate::config::{find_base_dir, update_env_var, update_profiles, DBType, MWUtilConfig};
 use crate::constants::{ALLOWED_DUMP_REGEX, MEDIAWIKI_CONTAINER};
 use crate::exec::{create_db_command, run_sql_query, DbCommandDatabase, DbCommandType, DbCommandUser};
+use crate::modules::container_action::ContainerActionArgs;
 use crate::utils::SpinnerSequence;
+use crate::Modules;
 use anyhow::{anyhow, bail, Context};
 use clap::{Args, Subcommand};
 use clap_complete::ArgValueCompleter;
@@ -18,8 +20,6 @@ use std::path::{Path, PathBuf};
 use std::process::Stdio;
 use std::thread::sleep;
 use std::time::Duration;
-use crate::Modules;
-use crate::modules::container_action::ContainerActionArgs;
 
 #[derive(Args)]
 pub struct DbArgs {

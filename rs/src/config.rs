@@ -1,10 +1,10 @@
+use crate::constants::CONFIG_FILE_NAME;
 use anyhow::{anyhow, Context};
 use clap::ValueEnum;
 use regex::Regex;
 use std::fmt::Display;
 use std::path::{Path, PathBuf};
 use std::{env, fs};
-use crate::constants::CONFIG_FILE_NAME;
 
 #[derive(Clone, Debug, PartialEq, ValueEnum)]
 pub enum DBType {

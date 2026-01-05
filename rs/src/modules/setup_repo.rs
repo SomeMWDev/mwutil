@@ -1,11 +1,11 @@
+use crate::config::MWUtilConfig;
+use crate::types::RepoOrigin;
+use crate::utils::set_git_config;
+use anyhow::anyhow;
+use clap::Args;
 use std::env;
 use std::path::PathBuf;
 use std::process::Command;
-use anyhow::anyhow;
-use clap::Args;
-use crate::config::MWUtilConfig;
-use crate::types::{RepoOrigin};
-use crate::utils::set_git_config;
 
 #[derive(Args, Default)]
 pub struct SetupRepoArgs {
