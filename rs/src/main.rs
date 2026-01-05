@@ -14,6 +14,8 @@ use anyhow::bail;
 use clap::{CommandFactory, Parser, Subcommand};
 use crate::modules::container_action::ContainerActionArgs;
 use crate::modules::reset::ResetArgs;
+use crate::modules::setup_repo::SetupRepoArgs;
+use crate::types::RepoOrigin;
 
 mod config;
 mod modules;
@@ -65,9 +67,9 @@ pub enum Modules {
     /// Allows creating and pushing security patches
     Security(SecurityArgs),
     /// Sets up a local repository that was cloned from GitHub
-    SetupGithub,
+    SetupGithub(SetupRepoArgs),
     /// Sets up git-review in a local repository that was cloned from gerrit
-    SetupGerrit,
+    SetupGerrit(SetupRepoArgs),
     /// Starts an interactive PHP shell
     Shell,
     /// Starts an interactive SQL shell
@@ -112,8 +114,8 @@ impl Modules {
             Modules::Reset(args) => modules::reset::execute(config.unwrap(), args),
             Modules::Run(args) => modules::run::execute(config.unwrap(), args),
             Modules::Security(args) => modules::security::execute(config, args),
-            Modules::SetupGerrit => modules::setup_gerrit::execute(config.unwrap(), None),
-            Modules::SetupGithub => modules::setup_github::execute(config.unwrap(), None),
+            Modules::SetupGerrit(args) => modules::setup_repo::execute(config.unwrap(), args, RepoOrigin::Gerrit),
+            Modules::SetupGithub(args) => modules::setup_repo::execute(config.unwrap(), args, RepoOrigin::Github),
             Modules::Shell => modules::run::execute(config.unwrap(), RunArgs {
                 script: "shell".into(),
                 ..Default::default()

@@ -1,7 +1,6 @@
 use crate::config::MWUtilConfig;
 use crate::exec::CommandExt;
 use crate::modules::pull::{PullArgs, PullRepoType};
-use crate::modules::{pull, setup_gerrit, setup_github};
 use crate::types::{CloneMethod, RepoOrigin, RepoType};
 use crate::{Modules};
 use clap::Args;
@@ -9,6 +8,7 @@ use regex::Regex;
 use std::os::unix::prelude::ExitStatusExt;
 use std::path::Path;
 use std::process::{Command, ExitStatus};
+use crate::modules::setup_repo::SetupRepoArgs;
 
 #[derive(Args)]
 pub struct CloneArgs {
@@ -53,10 +53,10 @@ pub fn execute(config: &MWUtilConfig, args: CloneArgs) -> anyhow::Result<()> {
     if status.into_raw() == 32768 {
         if stderr.contains("already exists and is not an empty directory") {
             println!("Directory already exists and is not empty. Pulling instead...");
-            return pull::execute(config, PullArgs {
+            return Modules::Pull(PullArgs {
                 repo_type: PullRepoType::from_repo_type(&args.repo_type),
                 name: Some(name),
-            });
+            }).run(config);
         }
         println!("Attempting to clone default branch instead...");
         let (status, stdout, stderr) = clone(&url, &name, &target_folder, args.shallow, None)?;
@@ -69,9 +69,13 @@ pub fn execute(config: &MWUtilConfig, args: CloneArgs) -> anyhow::Result<()> {
     let repo_folder = target_folder.join(name);
 
     if args.repo_origin == RepoOrigin::Gerrit {
-        setup_gerrit::execute(config, Some(repo_folder))?;
+        Modules::SetupGerrit(SetupRepoArgs {
+            folder: Some(repo_folder)
+        }).run(config)?;
     } else if args.repo_origin == RepoOrigin::Github {
-        setup_github::execute(config, Some(repo_folder))?;
+        Modules::SetupGithub(SetupRepoArgs {
+            folder: Some(repo_folder)
+        }).run(config)?;
     }
 
     if args.composer {
