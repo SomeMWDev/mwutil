@@ -84,45 +84,45 @@ fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
     let config = load_mwutil_config(cli.debug);
 
-    run_module(cli.module, config.as_ref().ok())
-}
-
-pub fn run_module(module: Modules, config: Option<&MWUtilConfig>) -> anyhow::Result<()> {
-    if config.is_none() && !module.works_globally() {
-        bail!("The selected module only works inside of an mw-dev-kit environment!");
-    }
-    match module {
-        Modules::Bash(args) => modules::bash::execute(config.unwrap(), args),
-        Modules::Clone(args) => modules::clone::execute(config.unwrap(), args),
-        Modules::Composer(args) => modules::composer::execute(config.unwrap(), args),
-        Modules::Db(args) => modules::db::execute(config.unwrap(), args),
-        Modules::Down(args) => modules::container_action::down(config.unwrap(), args),
-        Modules::Info => modules::info::execute(config.unwrap()),
-        Modules::Lint(args) => modules::lint::execute(config.unwrap(), args, true),
-        Modules::ListRepoRemotes => modules::list_repo_remotes::execute(config.unwrap()),
-        Modules::Npm(args) => modules::npm::execute(args),
-        Modules::OpenSearch(args) => modules::opensearch::execute(config.unwrap(), args),
-        Modules::Pull(args) => modules::pull::execute(config.unwrap(), args),
-        Modules::Recreate(args)=> modules::container_action::recreate(config.unwrap(), args),
-        Modules::Reset(args) => modules::reset::execute(config.unwrap(), args),
-        Modules::Run(args) => modules::run::execute(config.unwrap(), args),
-        Modules::Security(args) => modules::security::execute(config, args),
-        Modules::SetupGerrit => modules::setup_gerrit::execute(config.unwrap(), None),
-        Modules::SetupGithub => modules::setup_github::execute(config.unwrap(), None),
-        Modules::Shell => modules::run::execute(config.unwrap(), RunArgs {
-            script: "shell".into(),
-            ..Default::default()
-        }),
-        Modules::Sql(args) => modules::sql::execute(config.unwrap(), args),
-        Modules::Update => modules::run::execute(config.unwrap(), RunArgs {
-            script: "update".into(),
-            extra_args: vec!["--quick".into()],
-        }),
-        Modules::Up(args) => modules::container_action::up(config.unwrap(), args),
-    }
+    cli.module.run(config.as_ref().ok())
 }
 
 impl Modules {
+    pub fn run(self, config: Option<&MWUtilConfig>) -> anyhow::Result<()> {
+        if config.is_none() && !self.works_globally() {
+            bail!("The selected module only works inside of an mw-dev-kit environment!");
+        }
+        match self {
+            Modules::Bash(args) => modules::bash::execute(config.unwrap(), args),
+            Modules::Clone(args) => modules::clone::execute(config.unwrap(), args),
+            Modules::Composer(args) => modules::composer::execute(config.unwrap(), args),
+            Modules::Db(args) => modules::db::execute(config.unwrap(), args),
+            Modules::Down(args) => modules::container_action::down(config.unwrap(), args),
+            Modules::Info => modules::info::execute(config.unwrap()),
+            Modules::Lint(args) => modules::lint::execute(config.unwrap(), args, true),
+            Modules::ListRepoRemotes => modules::list_repo_remotes::execute(config.unwrap()),
+            Modules::Npm(args) => modules::npm::execute(args),
+            Modules::OpenSearch(args) => modules::opensearch::execute(config.unwrap(), args),
+            Modules::Pull(args) => modules::pull::execute(config.unwrap(), args),
+            Modules::Recreate(args)=> modules::container_action::recreate(config.unwrap(), args),
+            Modules::Reset(args) => modules::reset::execute(config.unwrap(), args),
+            Modules::Run(args) => modules::run::execute(config.unwrap(), args),
+            Modules::Security(args) => modules::security::execute(config, args),
+            Modules::SetupGerrit => modules::setup_gerrit::execute(config.unwrap(), None),
+            Modules::SetupGithub => modules::setup_github::execute(config.unwrap(), None),
+            Modules::Shell => modules::run::execute(config.unwrap(), RunArgs {
+                script: "shell".into(),
+                ..Default::default()
+            }),
+            Modules::Sql(args) => modules::sql::execute(config.unwrap(), args),
+            Modules::Update => modules::run::execute(config.unwrap(), RunArgs {
+                script: "update".into(),
+                extra_args: vec!["--quick".into()],
+            }),
+            Modules::Up(args) => modules::container_action::up(config.unwrap(), args),
+        }
+    }
+
     fn works_globally(&self) -> bool {
         matches!(self, Modules::Security(_))
     }

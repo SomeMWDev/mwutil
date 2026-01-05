@@ -6,7 +6,7 @@ use crate::constants::MEDIAWIKI_CONTAINER;
 use crate::modules::{db, opensearch};
 use crate::modules::opensearch::{OpenSearchArgs, OpenSearchCommand};
 use crate::modules::run::RunArgs;
-use crate::{run_module, Modules};
+use crate::{Modules};
 use crate::utils::SpinnerSequence;
 
 // only supports top-level files in images/ !
@@ -94,17 +94,17 @@ pub fn reset_database(config: &MWUtilConfig) -> anyhow::Result<()> {
         config.mw_user.clone().ok_or_else(|| anyhow!("MW User not set!"))?,
     ];
 
-    let result = run_module(Modules::Run(RunArgs {
+    let result = Modules::Run(RunArgs {
         script: "install".to_string(),
         extra_args: install_args,
-    }), Some(config));
+    }).run(Some(config));
 
     fs::rename(local_settings_tmp, local_settings)?;
 
     result?;
 
-    run_module(Modules::Update, Some(config))?;
-    run_module(Modules::Recreate(Default::default()), Some(config))?;
+    Modules::Update.run(Some(config))?;
+    Modules::Recreate(Default::default()).run(Some(config))?;
 
     Ok(())
 }

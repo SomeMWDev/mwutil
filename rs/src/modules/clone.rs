@@ -4,7 +4,7 @@ use crate::modules::composer::ComposerArgs;
 use crate::modules::pull::{PullArgs, PullRepoType};
 use crate::modules::{composer, pull, setup_gerrit, setup_github};
 use crate::types::{CloneMethod, RepoOrigin, RepoType};
-use crate::{run_module, Modules};
+use crate::{Modules};
 use clap::Args;
 use regex::Regex;
 use std::os::unix::prelude::ExitStatusExt;
@@ -79,7 +79,7 @@ pub fn execute(config: &MWUtilConfig, args: CloneArgs) -> anyhow::Result<()> {
         composer::execute(config, ComposerArgs::default())?;
     }
     if args.repo_type == RepoType::Extension {
-        run_module(Modules::Update, Some(config))?;
+        Modules::Update.run(Some(config))?;
     }
 
     Ok(())
