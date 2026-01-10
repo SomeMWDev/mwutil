@@ -8,10 +8,12 @@ use clap::{Args, ValueEnum};
 use std::path::PathBuf;
 use std::process::{Command, ExitStatus};
 use std::str::FromStr;
+use anyhow::bail;
 
 #[derive(Clone, ValueEnum)]
 enum LintType {
     Eslint,
+    Phan,
     Phpcs,
 }
 
@@ -32,13 +34,14 @@ impl LintType {
     fn base_command(&self) -> Command {
         Command::new(match self {
             LintType::Eslint => "npm",
-            LintType::Phpcs => "composer",
+            LintType::Phan | LintType::Phpcs => "composer",
         })
     }
 
     fn get_lint_args(&self) -> &[&str] {
         match self {
             LintType::Eslint => &["run", "lint"],
+            LintType::Phan => &["run", "phan"],
             LintType::Phpcs => &["run", "test"],
         }
     }
@@ -46,7 +49,7 @@ impl LintType {
     fn can_run_in_container(&self) -> bool {
         match self {
             LintType::Eslint => false,
-            LintType::Phpcs => true,
+            LintType::Phan | LintType::Phpcs => true,
         }
     }
 
@@ -69,6 +72,7 @@ impl LintType {
     fn fix(&self, config: &MWUtilConfig, folder: Option<String>) -> anyhow::Result<ExitStatus> {
         self.execute(config, folder, match self {
             LintType::Eslint => &["run", "lint:fix:js"],
+            LintType::Phan => bail!("--fix is not implemented for phan!"),
             LintType::Phpcs => &["run", "fix"],
         })
     }
@@ -88,7 +92,7 @@ pub fn execute(config: &MWUtilConfig, args: LintArgs, update: bool) -> anyhow::R
                 folder: args.folder.clone(),
                 ..Default::default()
             }).run(config)?,
-            LintType::Phpcs => Modules::Composer(ComposerArgs {
+            LintType::Phan | LintType::Phpcs => Modules::Composer(ComposerArgs {
                 folder: args.folder.clone(),
                 ..Default::default()
             }).run(config)?,
