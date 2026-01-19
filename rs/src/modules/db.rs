@@ -175,7 +175,7 @@ pub fn import_dump(config: &MWUtilConfig, args: DumpSubArgs) -> anyhow::Result<(
     spinner.next("Creating database");
     run_sql_query(
         config,
-        DbCommandUser::Mw,
+        DbCommandUser::Root,
         Some(DbCommandDatabase::None),
         format!(
             "CREATE DATABASE `{}`;",
@@ -187,7 +187,7 @@ pub fn import_dump(config: &MWUtilConfig, args: DumpSubArgs) -> anyhow::Result<(
     let mut process = create_db_command(
         config,
         DbCommandType::Query,
-        DbCommandUser::Mw,
+        DbCommandUser::Root,
         None,
         Some(&["-T".into()]),
         None
