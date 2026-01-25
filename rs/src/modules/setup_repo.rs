@@ -37,7 +37,7 @@ pub fn setup_gerrit(config: &MWUtilConfig, args: SetupRepoArgs) -> anyhow::Resul
             "url.\"ssh://{}@gerrit.wikimedia.org:29418/\".insteadOf",
             config.gerrit_username.clone().ok_or_else(|| anyhow!("Gerrit username not set!"))?.as_str()
         ),
-        "\"https://gerrit.wikimedia.org/r/\"",
+        "https://gerrit.wikimedia.org/r/",
         &repo_folder
     )?;
     // ToDo should we really use git_username here?
