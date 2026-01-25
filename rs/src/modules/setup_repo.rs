@@ -52,7 +52,7 @@ pub fn setup_gerrit(config: &MWUtilConfig, args: SetupRepoArgs) -> anyhow::Resul
         .current_dir(repo_folder)
         .status()?;
     if !status.success() {
-        bail!("git review setup failed!");
+        bail!("git review setup failed with exit code: {:?}", status.code());
     }
     Ok(())
 }

@@ -1,7 +1,7 @@
 use crate::config::{find_base_dir, MWUtilConfig};
 use crate::exec::create_docker_compose_command;
 use crate::types::MWVersion;
-use anyhow::Context;
+use anyhow::{bail, Context};
 use clap_complete::CompletionCandidate;
 use console::style;
 use indicatif::ProgressBar;
@@ -44,11 +44,14 @@ pub fn get_core_version(config: &MWUtilConfig) -> Option<MWVersion> {
 }
 
 pub fn set_git_config(option: &str, value: &str, repo_folder: &PathBuf) -> anyhow::Result<()> {
-    Command::new("git")
+    let status = Command::new("git")
         .args(["config", "--local", option, value])
         .current_dir(repo_folder)
         .status()
         .context("Failed to set git option!")?;
+    if !status.success() {
+        bail!("git config failed with exit code: {:?}", status.code());
+    }
     Ok(())
 }
 
