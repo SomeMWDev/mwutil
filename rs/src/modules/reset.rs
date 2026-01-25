@@ -58,16 +58,14 @@ pub fn reset_uploads(config: &MWUtilConfig) -> anyhow::Result<()> {
     if !upload_dir.is_dir() {
         bail!("Upload directory is not a directory!");
     }
-    if let Ok(files) = fs::read_dir(upload_dir) {
-        for entry in files.flatten() {
-            if !EXCLUDED_UPLOADS.contains(&entry.file_name().to_string_lossy().as_ref()) {
-                let path = entry.path();
-                println!("Removing {}", entry.file_name().to_string_lossy());
-                if path.is_dir() {
-                    fs::remove_dir_all(path)?;
-                } else {
-                    fs::remove_file(path)?;
-                }
+    for entry in fs::read_dir(upload_dir)?.flatten() {
+        if !EXCLUDED_UPLOADS.contains(&entry.file_name().to_string_lossy().as_ref()) {
+            let path = entry.path();
+            println!("Removing {}", entry.file_name().to_string_lossy());
+            if path.is_dir() {
+                fs::remove_dir_all(path)?;
+            } else {
+                fs::remove_file(path)?;
             }
         }
     }
