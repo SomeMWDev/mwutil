@@ -47,7 +47,7 @@ fn create_patch(config: Option<&MWUtilConfig>, args: CreatePatchArgs) -> anyhow:
         None => env::current_dir()?,
     };
     if !folder.exists() {
-        fs::create_dir(&folder)?;
+        fs::create_dir_all(&folder)?;
     }
     let name: String;
     if let Some(n) = args.name {

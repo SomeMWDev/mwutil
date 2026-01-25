@@ -337,7 +337,7 @@ fn get_dump(
     }
 
     if !config.dump_dir.exists() {
-        fs::create_dir(config.dump_dir.as_path())?;
+        fs::create_dir_all(config.dump_dir.as_path())?;
         println!("{} dump directory.", style("Created").green());
     }
     let dump_file = config.dump_dir.join(format!("{}.sql", name));
