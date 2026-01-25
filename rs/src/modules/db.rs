@@ -90,7 +90,7 @@ pub fn execute_dump_command(config: &MWUtilConfig, args: DumpArgs)-> anyhow::Res
 pub fn create_dump(config: &MWUtilConfig, args: DumpSubArgs) -> anyhow::Result<()> {
     let dump_file = get_dump(config, &args.name, Existence::MustNotExist)?;
 
-    let mut spinner = SpinnerSequence::new(1, "Creating dump");
+    let spinner = SpinnerSequence::new(1, "Creating dump");
     let mut cmd = create_db_command(
         config,
         DbCommandType::Dump,
