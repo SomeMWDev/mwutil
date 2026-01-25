@@ -62,7 +62,7 @@ fn create_patch(config: Option<&MWUtilConfig>, args: CreatePatchArgs) -> anyhow:
         }
         let branch_name = String::from_utf8(output.stdout)?.trim().to_string();
         if branch_name.is_empty() {
-            bail!("Current brancch name is empty (detached HEAD?). Please provide --name.");
+            bail!("Current branch name is empty (detached HEAD?). Please provide --name.");
         }
         println!("No patch name provided. Current branch: {branch_name}");
         if args.use_branch_name {
