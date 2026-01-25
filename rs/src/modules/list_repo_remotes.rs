@@ -34,8 +34,7 @@ fn list_folder(folder: PathBuf) -> anyhow::Result<()> {
             let Ok(status) = status_res else {
                 continue;
             };
-            let mut remote = String::from_utf8(status.stdout)?;
-            remote.pop();
+            let remote = String::from_utf8(status.stdout)?.trim_end().to_string();
             remotes.insert(
                 path.file_stem()
                     .map(OsStr::to_string_lossy)
