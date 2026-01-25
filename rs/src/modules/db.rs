@@ -165,7 +165,7 @@ pub fn drop_mw_database(config: &MWUtilConfig) -> anyhow::Result<()> {
         ).as_str(),
     ).context("Failed to drop database")?;
     if !status.success() {
-        bail!("Failed to drop database: Command returned an error!")
+        bail!("Failed to drop database! Exit code: {:?}", status.code());
     }
     Ok(())
 }
@@ -178,7 +178,7 @@ pub fn import_dump(config: &MWUtilConfig, args: DumpSubArgs) -> anyhow::Result<(
     drop_mw_database(config)?;
 
     spinner.next("Creating database");
-    run_sql_query(
+    let status = run_sql_query(
         config,
         DbCommandUser::Root,
         Some(DbCommandDatabase::None),
@@ -187,6 +187,9 @@ pub fn import_dump(config: &MWUtilConfig, args: DumpSubArgs) -> anyhow::Result<(
             config.mw_database.clone().ok_or_else(|| anyhow!("MW database not set!"))?
         ).as_str()
     ).context("Failed to create database")?;
+    if !status.success() {
+        bail!("Failed to create database! Exit code: {:?}", status.code());
+    }
 
     spinner.next("Importing dump");
     let mut process = create_db_command(
@@ -201,7 +204,10 @@ pub fn import_dump(config: &MWUtilConfig, args: DumpSubArgs) -> anyhow::Result<(
         .spawn()
         .context("Failed to spawn DB process")?;
     process.stdin.as_mut().ok_or_else(|| anyhow!("Failed to copy process stdin!"))?.write_all(&bytes)?;
-    process.wait()?;
+    let status = process.wait()?;
+    if !status.success() {
+        bail!("Failed to import dump! Exit code: {:?}", status.code());
+    }
 
     spinner.next("Restarting MW container");
     Modules::Recreate(ContainerActionArgs {
