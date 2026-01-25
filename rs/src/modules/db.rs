@@ -156,7 +156,7 @@ pub fn delete_all_dumps(config: &MWUtilConfig) -> anyhow::Result<()> {
 pub fn drop_mw_database(config: &MWUtilConfig) -> anyhow::Result<()> {
     let status = run_sql_query(
         config,
-        DbCommandUser::Mw,
+        DbCommandUser::Root,
         Some(DbCommandDatabase::None),
         format!(
             "DROP DATABASE IF EXISTS `{}`;",
