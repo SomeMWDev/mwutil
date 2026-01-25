@@ -192,6 +192,9 @@ pub fn update_profiles(config: &mut MWUtilConfig, profiles: &[String]) -> anyhow
 }
 
 pub fn enable_profile(config: &mut MWUtilConfig, profile: String) -> anyhow::Result<()> {
+    if config.compose_profiles.contains(&profile) {
+        return Ok(())
+    }
     let mut new_profiles = config.compose_profiles.clone();
     new_profiles.push(profile);
     update_profiles(config, new_profiles.as_slice())
