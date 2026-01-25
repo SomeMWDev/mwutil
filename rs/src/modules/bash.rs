@@ -1,0 +1,55 @@
+use crate::config::MWUtilConfig;
+use crate::exec::ContainerSupport;
+use crate::types::Container;
+use crate::utils::container_completer;
+use clap::Args;
+use clap_complete::ArgValueCompleter;
+use std::path::Path;
+use std::process::Command;
+
+#[derive(Args)]
+pub struct BashArgs {
+    /// The container to execute the command in
+    #[arg(short, long, add = ArgValueCompleter::new(container_completer))]
+    container: Option<String>,
+
+    /// The folder in the container to execute the command in
+    #[arg(short, long)]
+    folder: Option<String>,
+
+    /// Execute the command as the root user in the container
+    #[arg(short, long)]
+    root: bool,
+
+    /// The command to execute in the container
+    #[arg(trailing_var_arg = true)]
+    command: Vec<String>,
+}
+
+pub fn execute(config: &MWUtilConfig, args: BashArgs) -> anyhow::Result<()> {
+    let container = args.container
+        .clone()
+        .map(Container::Other)
+        .unwrap_or(Container::MediaWiki);
+    let (program, cmd_args) = match args.command.clone().split_first() {
+        Some((first, rest)) => (first.clone(), rest.to_vec()),
+        None => ("bash".to_string(), vec![])
+    };
+    let mut cmd = Command::new(program);
+    cmd.args(cmd_args);
+    if let Some(workdir) = args.folder {
+        cmd.current_dir(Path::new(&workdir));
+    };
+
+    let mut exec_options = vec![];
+    if args.root {
+        exec_options.push("-u".into());
+        exec_options.push("root".into());
+    }
+
+    cmd.in_container(config, container, Some(&exec_options))?
+        .status()
+        .ok();
+
+    Ok(())
+}

@@ -14,7 +14,7 @@ dependencies = [
     "watchdog>=6.0.0",
 ]
 [project.scripts]
-mwutil = "mwutil.cli:main"
+mwutil-py = "mwutil.cli:main"
 
 [dependency-groups]
 dev = [

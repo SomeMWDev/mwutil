@@ -1,10 +1,14 @@
 version: 2
 updates:
   - package-ecosystem: "uv"
-    directory: "/"
+    directory: "/py"
     schedule:
       interval: "weekly"
   - package-ecosystem: "github-actions"
     directory: "/"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "cargo"
+    directory: "/rs"
     schedule:
       interval: "weekly"
