@@ -14,3 +14,4 @@ pub(crate) mod security;
 pub(crate) mod reset;
 pub(crate) mod container_action;
 pub(crate) mod setup_repo;
+pub(crate) mod watch;

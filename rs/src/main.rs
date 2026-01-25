@@ -16,6 +16,7 @@ use crate::modules::sql::SqlArgs;
 use crate::types::RepoOrigin;
 use anyhow::bail;
 use clap::{CommandFactory, Parser, Subcommand};
+use crate::modules::watch::WatchArgs;
 
 mod config;
 mod modules;
@@ -78,6 +79,8 @@ pub enum Modules {
     Up(ContainerActionArgs),
     /// Runs update.php
     Update,
+    /// Watches a file and copies it to the clipboard if it changes
+    Watch(WatchArgs),
 }
 
 fn main() -> anyhow::Result<()> {
@@ -126,10 +129,11 @@ impl Modules {
                 extra_args: vec!["--quick".into()],
             }),
             Modules::Up(args) => modules::container_action::up(config.unwrap(), args),
+            Modules::Watch(args) => modules::watch::execute(args),
         }
     }
 
     fn works_globally(&self) -> bool {
-        matches!(self, Modules::Npm(_) | Modules::Security(_))
+        matches!(self, Modules::Npm(_) | Modules::Security(_) | Modules::Watch(_))
     }
 }
