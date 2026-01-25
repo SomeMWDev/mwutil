@@ -15,6 +15,7 @@ use rand::Rng;
 use regex::Regex;
 use std::ffi::OsStr;
 use std::fs;
+use std::fs::File;
 use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::process::Stdio;
@@ -89,21 +90,25 @@ pub fn execute_dump_command(config: &MWUtilConfig, args: DumpArgs)-> anyhow::Res
 pub fn create_dump(config: &MWUtilConfig, args: DumpSubArgs) -> anyhow::Result<()> {
     let dump_file = get_dump(config, &args.name, Existence::MustNotExist)?;
 
-    let mut spinner = SpinnerSequence::new(2, "Dumping database");
-    let out = create_db_command(
+    let mut spinner = SpinnerSequence::new(1, "Creating dump");
+    let mut cmd = create_db_command(
         config,
         DbCommandType::Dump,
         DbCommandUser::Mw,
         Some(&["--skip-set-charset", "--default-character-set=utf8mb4"]),
         None,
         None
-    )?
-        .output()
+    )?;
+    let file = File::create(&dump_file)
+        .context("Failed to create dump file!")?;
+    let status = cmd
+        .stdout(Stdio::from(file))
+        .status()
         .context("Failed to dump database!")?;
 
-    spinner.next("Writing dump to file");
-    fs::write(&dump_file, out.stdout)
-        .context("Failed to write dump to file!")?;
+    if !status.success() {
+        bail!("Failed to dump database: command returned non-zero status {:?}", status.code())
+    }
     spinner.finish();
 
     println!(
