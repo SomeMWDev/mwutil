@@ -276,7 +276,7 @@ pub fn switch(config: &MWUtilConfig, args: SwitchArgs) -> anyhow::Result<()> {
         let res = run_sql_query(
             &new_config,
             DbCommandUser::Mw,
-            Some(DbCommandDatabase::Mw),
+            Some(DbCommandDatabase::None),
             "SELECT 1;"
         );
         if res.is_ok_and(|s|s.success()) {
