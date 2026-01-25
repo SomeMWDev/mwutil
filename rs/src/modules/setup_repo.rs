@@ -1,7 +1,7 @@
 use crate::config::MWUtilConfig;
 use crate::types::RepoOrigin;
 use crate::utils::set_git_config;
-use anyhow::anyhow;
+use anyhow::{anyhow, bail};
 use clap::Args;
 use std::env;
 use std::path::PathBuf;
@@ -47,10 +47,13 @@ pub fn setup_gerrit(config: &MWUtilConfig, args: SetupRepoArgs) -> anyhow::Resul
         &repo_folder
     )?;
     set_git_config("gitreview.remote", "origin", &repo_folder)?;
-    Command::new("git")
+    let status = Command::new("git")
         .args(["review", "-s", "--verbose"])
         .current_dir(repo_folder)
         .status()?;
+    if !status.success() {
+        bail!("git review setup failed!");
+    }
     Ok(())
 }
 
