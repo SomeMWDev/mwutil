@@ -40,6 +40,7 @@ pub fn setup_gerrit(config: &MWUtilConfig, args: SetupRepoArgs) -> anyhow::Resul
         "\"https://gerrit.wikimedia.org/r/\"",
         &repo_folder
     )?;
+    // ToDo should we really use git_username here?
     set_git_config(
         "gitreview.username",
         config.git_username.clone().ok_or_else(|| anyhow!("git-review username not set!"))?.as_str(),
