@@ -76,7 +76,8 @@ fn create_patch(config: Option<&MWUtilConfig>, args: CreatePatchArgs) -> anyhow:
         }
     }
 
-    let patch_file = folder.join(format!("{name}.patch"));
+    let safe_name = name.replace(['/', '\\'], "-");
+    let patch_file = folder.join(format!("{safe_name}.patch"));
     let status = Command::new("git")
         .args(["format-patch", "HEAD^", "--output", patch_file.to_string_lossy().as_ref()])
         .status()?;
