@@ -86,17 +86,19 @@ fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
     let config = load_mwutil_config(cli.debug);
 
-    cli.module.run_globally(config.as_ref().ok())
+    cli.module.run_globally(config.as_ref())
 }
 
 impl Modules {
     pub fn run(self, config: &MWUtilConfig) -> anyhow::Result<()> {
-        self.run_globally(Some(config))
+        self.run_globally(Ok(config))
     }
 
-    pub fn run_globally(self, config: Option<&MWUtilConfig>) -> anyhow::Result<()> {
-        if config.is_none() && !self.works_globally() {
-            bail!("The selected module only works inside of an mw-dev-kit environment!");
+    pub fn run_globally(self, config: Result<&MWUtilConfig, &anyhow::Error>) -> anyhow::Result<()> {
+        if let Err(e) = config {
+            if !self.works_globally() {
+                bail!("The selected module only works inside of an mw-dev-kit environment.\n{e}");
+            }
         }
         match self {
             Modules::Bash(args) => modules::bash::execute(config.unwrap(), args),
@@ -113,7 +115,7 @@ impl Modules {
             Modules::Recreate(args)=> modules::container_action::recreate(config.unwrap(), args),
             Modules::Reset(args) => modules::reset::execute(config.unwrap(), args),
             Modules::Run(args) => modules::run::execute(config.unwrap(), args),
-            Modules::Security(args) => modules::security::execute(config, args),
+            Modules::Security(args) => modules::security::execute(config.ok(), args),
             Modules::SetupGerrit(args) => modules::setup_repo::execute(config.unwrap(), args, RepoOrigin::Gerrit),
             Modules::SetupGithub(args) => modules::setup_repo::execute(config.unwrap(), args, RepoOrigin::Github),
             Modules::Shell => modules::run::execute(config.unwrap(), RunArgs {
