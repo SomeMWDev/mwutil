@@ -172,7 +172,8 @@ pub fn drop_mw_database(config: &MWUtilConfig) -> anyhow::Result<()> {
 
 pub fn import_dump(config: &MWUtilConfig, args: DumpSubArgs) -> anyhow::Result<()> {
     let dump_file = get_dump(config, &args.name, Existence::MustExist)?;
-    let bytes = fs::read(dump_file).context("Failed to read dump file")?;
+    let mut dump_reader = File::open(&dump_file)
+        .context("Failed to open dump file")?;
 
     let mut spinner = SpinnerSequence::new(4, "Dropping database");
     drop_mw_database(config)?;
@@ -203,7 +204,11 @@ pub fn import_dump(config: &MWUtilConfig, args: DumpSubArgs) -> anyhow::Result<(
         .stdin(Stdio::piped())
         .spawn()
         .context("Failed to spawn DB process")?;
-    process.stdin.as_mut().ok_or_else(|| anyhow!("Failed to copy process stdin!"))?.write_all(&bytes)?;
+    let mut stdin = process.stdin.take()
+        .ok_or_else(|| anyhow!("Failed to copy process stdin!"))?;
+    std::io::copy(&mut dump_reader, &mut stdin)
+        .context("Failed to stream dump into DB process")?;
+    drop(stdin);
     let status = process.wait()?;
     if !status.success() {
         bail!("Failed to import dump! Exit code: {:?}", status.code());
