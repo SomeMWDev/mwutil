@@ -175,8 +175,13 @@ pub fn update_env_var(config: &MWUtilConfig, var: &str, val: &str) -> anyhow::Re
         .context("Failed to read .env file!")?;
 
     let re = Regex::new(&format!(r"(?m)^{}=.*$", regex::escape(var)))?;
-    let output = re.replace_all(contents.as_str(), format!("{}={}", var, val));
-    fs::write(env_file, output.as_ref())
+    let new_line = format!("{}={}", var, val);
+    let output = if re.is_match(&contents) {
+        re.replace_all(&contents, &new_line).into_owned()
+    } else {
+        format!("{}\n{}", contents.trim_end(), new_line)
+    };
+    fs::write(env_file, output)
         .context("Failed to write to .env file!")?;
     Ok(())
 }
