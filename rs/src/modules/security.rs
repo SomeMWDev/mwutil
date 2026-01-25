@@ -56,7 +56,14 @@ fn create_patch(config: Option<&MWUtilConfig>, args: CreatePatchArgs) -> anyhow:
         let output = Command::new("git")
             .args(["branch", "--show-current"])
             .output()?;
+        if !output.status.success() {
+            let stderr = String::from_utf8_lossy(&output.stderr);
+            bail!("Failed to determine current branch. Error: {stderr}");
+        }
         let branch_name = String::from_utf8(output.stdout)?.trim().to_string();
+        if branch_name.is_empty() {
+            bail!("Current brancch name is empty (detached HEAD?). Please provide --name.");
+        }
         println!("No patch name provided. Current branch: {branch_name}");
         if args.use_branch_name {
             name = branch_name;
