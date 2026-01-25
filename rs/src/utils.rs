@@ -12,9 +12,11 @@ use std::process::Command;
 use std::time::Duration;
 
 pub fn container_completer(_current: &std::ffi::OsStr) -> Vec<CompletionCandidate> {
-    let base_dir = find_base_dir()
-        .expect("Failed to load base dir!");
-    create_docker_compose_command(&base_dir)
+    let base_dir = find_base_dir();
+    if base_dir.is_none() {
+        return vec![];
+    }
+    create_docker_compose_command(&base_dir.unwrap())
         .args(["ps", "--services"])
         .output()
         .ok()
