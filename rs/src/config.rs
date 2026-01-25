@@ -111,7 +111,7 @@ pub fn load_mwutil_config(debug: bool) -> anyhow::Result<MWUtilConfig> {
         .unwrap_or(String::from("master"));
 
     let compose_profiles: Vec<String> = env::var("COMPOSE_PROFILES")
-        .context("The COMPOSER_PROFILES env variable is required")?
+        .context("The COMPOSE_PROFILES env variable is required")?
         .split(",")
         .map(String::from)
         .collect();
