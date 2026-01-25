@@ -9,7 +9,7 @@ path = "src/main.rs"
 
 [dependencies]
 anyhow = "1.0.100"
-clap = { version = "4.5.53", features = ["derive"] }
+clap = { version = "4.5.54", features = ["derive"] }
 clap_complete = { version = "4.5.62", features = ["unstable-dynamic"] }
 console = "0.16.2"
 dotenv = "0.15.0"
