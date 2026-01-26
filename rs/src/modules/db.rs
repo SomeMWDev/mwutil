@@ -154,13 +154,21 @@ pub fn delete_all_dumps(config: &MWUtilConfig) -> anyhow::Result<()> {
 }
 
 pub fn drop_mw_database(config: &MWUtilConfig) -> anyhow::Result<()> {
+    let db = &config.mw_database.clone().ok_or_else(|| anyhow!("MW database not set!"))?;
+    drop_database(
+        config,
+        db
+    )
+}
+
+pub fn drop_database(config: &MWUtilConfig, db: &str) -> anyhow::Result<()> {
     let status = run_sql_query(
         config,
         DbCommandUser::Root,
         Some(DbCommandDatabase::None),
         format!(
             "DROP DATABASE IF EXISTS `{}`;",
-            config.mw_database.clone().ok_or_else(|| anyhow!("MW database not set!"))?
+            db
         ).as_str(),
     ).context("Failed to drop database")?;
     if !status.success() {

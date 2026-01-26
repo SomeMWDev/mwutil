@@ -16,6 +16,7 @@ use crate::modules::sql::SqlArgs;
 use crate::types::RepoOrigin;
 use anyhow::bail;
 use clap::{CommandFactory, Parser, Subcommand};
+use crate::modules::farm::FarmArgs;
 use crate::modules::watch::WatchArgs;
 
 mod config;
@@ -47,6 +48,8 @@ pub enum Modules {
     Db(DbArgs),
     /// Stops containers
     Down(ContainerActionArgs),
+    /// Allows managing a wiki farm
+    Farm(FarmArgs),
     /// Prints info about the environment
     Info,
     /// Runs a linter
@@ -107,6 +110,7 @@ impl Modules {
             Modules::Composer(args) => modules::composer::execute(config.unwrap(), args),
             Modules::Db(args) => modules::db::execute(config.unwrap(), args),
             Modules::Down(args) => modules::container_action::down(config.unwrap(), args),
+            Modules::Farm(args) => modules::farm::execute(config.unwrap(), args),
             Modules::Info => modules::info::execute(config.unwrap()),
             Modules::Lint(args) => modules::lint::execute(config.unwrap(), args, true),
             Modules::ListRepoRemotes => modules::list_repo_remotes::execute(config.unwrap()),
