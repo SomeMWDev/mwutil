@@ -8,7 +8,7 @@ name = "mwutil"
 path = "src/main.rs"
 
 [dependencies]
-anyhow = "1.0.100"
+anyhow = "1.0.101"
 clap = { version = "4.5.56", features = ["derive"] }
 clap_complete = { version = "4.5.65", features = ["unstable-dynamic"] }
 console = "0.16.2"
