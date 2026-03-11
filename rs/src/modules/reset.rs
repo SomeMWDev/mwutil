@@ -39,7 +39,7 @@ pub fn execute(config: &MWUtilConfig, args: ResetArgs) -> anyhow::Result<()> {
     }
     if actions.contains(&ResetActions::Database) {
         spinner.next("Resetting database");
-        reset_database(config)?;
+        reset_default_database(config)?;
     }
     if actions.contains(&ResetActions::OpenSearch) {
         spinner.next("Resetting OpenSearch");
@@ -72,15 +72,25 @@ pub fn reset_uploads(config: &MWUtilConfig) -> anyhow::Result<()> {
     Ok(())
 }
 
-pub fn reset_database(config: &MWUtilConfig) -> anyhow::Result<()> {
-    db::drop_mw_database(config)?;
+pub fn reset_default_database(config: &MWUtilConfig) -> anyhow::Result<()> {
+    reset_database(
+        config,
+        &config.mw_database.clone().ok_or_else(|| anyhow!("MW database not set!"))?,
+        false
+    )
+}
+
+pub fn reset_database(config: &MWUtilConfig, db: &str, new: bool) -> anyhow::Result<()> {
+    if !new {
+        db::drop_database(config, db)?;
+    }
 
     let local_settings = config.core_dir.join("LocalSettings.php");
     let local_settings_tmp = config.core_dir.join("LocalSettings.temp.php");
     fs::rename(&local_settings, &local_settings_tmp)?;
 
     let install_args = vec![
-        format!("--dbname={}", config.mw_database.clone().ok_or_else(|| anyhow!("MW Database not set!"))?),
+        format!("--dbname={}", db),
         format!("--dbuser={}", config.db_user.clone().ok_or_else(|| anyhow!("DB User not set!"))?),
         format!("--dbpass={}", config.db_password.clone().ok_or_else(|| anyhow!("DB Password not set!"))?),
         format!("--dbserver={}", config.db_type.clone().get_container_name()),
@@ -101,8 +111,14 @@ pub fn reset_database(config: &MWUtilConfig) -> anyhow::Result<()> {
 
     result?;
 
-    Modules::Update.run(config)?;
-    Modules::Recreate(Default::default()).run(config)?;
+    Modules::Run(RunArgs {
+        script: "update".into(),
+        extra_args: vec!["--wiki".into(), db.into(), "--quick".into()],
+    }).run(config)?;
+
+    if !new {
+        Modules::Recreate(Default::default()).run(config)?;
+    }
 
     Ok(())
 }
