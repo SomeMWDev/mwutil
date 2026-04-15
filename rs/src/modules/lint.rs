@@ -56,6 +56,7 @@ impl LintType {
     fn execute(&self, config: &MWUtilConfig, folder: Option<String>, args: &[&str]) -> anyhow::Result<ExitStatus> {
         let mut cmd = self.base_command();
         cmd.args(args);
+        cmd.env("XDEBUG_MODE", "off");
 
         if let Some(folder) = folder.clone() {
             cmd.current_dir(PathBuf::from_str(folder.as_str())?);

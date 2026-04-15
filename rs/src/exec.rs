@@ -37,6 +37,17 @@ impl ContainerSupport for Command {
                 cmd_args.push(workdir_str.to_string());
             }
         }
+        // Copy env vars
+        for env in self.get_envs() {
+            if let Some(value) = env.1 {
+                cmd_args.push("-e".into());
+                cmd_args.push(format!(
+                    "{}={}",
+                    env.0.to_string_lossy(),
+                    value.to_string_lossy()
+                ));
+            }
+        }
         cmd_args.extend_from_slice(exec_options.unwrap_or_default());
         cmd_args.extend([
             container.to_string(),
