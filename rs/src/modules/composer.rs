@@ -19,6 +19,7 @@ pub struct ComposerArgs {
 pub fn execute(config: &MWUtilConfig, args: ComposerArgs) -> anyhow::Result<()> {
     let mut cmd = Command::new("composer");
 
+    cmd.env("XDEBUG_MODE", "off");
     cmd.arg("update");
     cmd.args(args.extra_args);
     if let Some(workdir) = args.folder {
