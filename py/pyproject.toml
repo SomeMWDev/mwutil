@@ -18,5 +18,5 @@ mwutil-py = "mwutil.cli:main"
 
 [dependency-groups]
 dev = [
-    "ruff>=0.15.11",
+    "ruff>=0.15.12",
 ]
