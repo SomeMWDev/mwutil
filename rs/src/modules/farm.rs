@@ -2,6 +2,7 @@ use anyhow::{bail, Context};
 use clap::{Args, Subcommand};
 use crate::config::MWUtilConfig;
 use crate::exec::{run_sql_query, DbCommandDatabase, DbCommandUser};
+use crate::farm::load_farm_config;
 use crate::modules::{db, reset};
 
 #[derive(Args)]
@@ -33,6 +34,16 @@ fn install_wiki(config: &MWUtilConfig, args: InstallArgs) -> anyhow::Result<()> 
         // TODO maybe we want to allow other suffixes?
         bail!("The DB name must end with 'wiki'!");
     }
+
+    let farm_config = load_farm_config(config)?;
+    match farm_config {
+        None => bail!("Cannot install a wiki without a valid farm config!"),
+        Some(farm_config) => {
+            if !farm_config.wikis.contains(&args.db_name.clone()) {
+                bail!("The wiki needs to be added to farm-config.json first!")
+            }
+        }
+    };
 
     let status = run_sql_query(
         config,
