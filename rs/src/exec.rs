@@ -6,7 +6,7 @@ use std::path::Path;
 use std::process::{Command, ExitStatus, Stdio};
 use std::thread;
 use std::thread::JoinHandle;
-use crate::farm_config::{get_db_name, Wiki};
+use crate::farm_config::{get_db_name, get_wiki_from_param, Wiki};
 
 pub trait ContainerSupport {
     fn in_container(
@@ -136,6 +136,10 @@ pub enum DbCommandType {
 pub enum DbCommandDatabase {
     None,
     Mw(Wiki),
+}
+
+pub fn get_database_from_param(param: Option<String>) -> DbCommandDatabase {
+    DbCommandDatabase::Mw(get_wiki_from_param(param))
 }
 
 pub fn create_db_command(

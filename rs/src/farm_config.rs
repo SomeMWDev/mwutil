@@ -13,10 +13,14 @@ pub enum Wiki {
 }
 
 pub fn get_db_name_from_param(config: &MWUtilConfig, param: Option<String>) -> anyhow::Result<String> {
-    get_db_name(config, match param {
+    get_db_name(config, get_wiki_from_param(param))
+}
+
+pub fn get_wiki_from_param(param: Option<String>) -> Wiki {
+    match param {
         None => Wiki::Central,
         Some(name) => Wiki::ByName(name)
-    })
+    }
 }
 
 pub fn get_db_name(config: &MWUtilConfig, wiki: Wiki) -> anyhow::Result<String> {
