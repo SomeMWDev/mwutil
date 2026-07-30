@@ -1,11 +1,22 @@
-use crate::config::MWUtilConfig;
+use clap_complete::ArgValueCompleter;
+use crate::config::{find_base_dir, MWUtilConfig};
 use anyhow::{anyhow, Context};
 use serde_json::Value;
 use std::fs;
+use std::path::PathBuf;
+use clap::Args;
+use clap_complete::CompletionCandidate;
 
 pub enum Wiki {
     ByName(String),
     Central,
+}
+
+pub fn get_db_name_from_param(config: &MWUtilConfig, param: Option<String>) -> anyhow::Result<String> {
+    get_db_name(config, match param {
+        None => Wiki::Central,
+        Some(name) => Wiki::ByName(name)
+    })
 }
 
 pub fn get_db_name(config: &MWUtilConfig, wiki: Wiki) -> anyhow::Result<String> {
@@ -26,7 +37,12 @@ pub struct FarmConfig {
 }
 
 pub fn load_farm_config(config: &MWUtilConfig) -> anyhow::Result<Option<FarmConfig>> {
-    let file = config.base_dir.clone().join("config").join("farm-config.json");
+    load_farm_config_fast(config.base_dir.clone())
+}
+
+// This does the same as load_farm_config(), but without requiring a full config object.
+pub fn load_farm_config_fast(base_dir: PathBuf) -> anyhow::Result<Option<FarmConfig>> {
+    let file = base_dir.join("config").join("farm-config.json");
     let exists = fs::exists(&file)?;
     if !exists {
         return Ok(None)
@@ -38,7 +54,7 @@ pub fn load_farm_config(config: &MWUtilConfig) -> anyhow::Result<Option<FarmConf
     if let Some(wikis) = data.get("wikis").and_then(Value::as_object) {
         let wiki_names: Vec<String> = wikis.keys().cloned().collect();
 
-        let central_wiki = data["central_wiki"].as_str()
+        let central_wiki = data["centralWiki"].as_str()
             .ok_or_else(|| anyhow!("Failed to retrieve central wiki!"))?;
 
         return Ok(Some(FarmConfig {
@@ -48,3 +64,22 @@ pub fn load_farm_config(config: &MWUtilConfig) -> anyhow::Result<Option<FarmConf
     }
     Err(anyhow!("Failed to parse farm config."))
 }
+
+#[derive(Args, Default)]
+pub struct FarmCommandArgs {
+    /// The database name of the wiki that will be used
+    #[arg(add = ArgValueCompleter::new(wiki_completer))]
+    pub wiki: Option<String>,
+}
+
+fn wiki_completer(_current: &std::ffi::OsStr) -> Vec<CompletionCandidate> {
+    let Some(base_dir) = find_base_dir() else {
+        return vec![];
+    };
+    let Ok(farm_config) = load_farm_config_fast(base_dir) else {
+        return vec![];
+    };
+
+    farm_config.unwrap().wikis.iter().map(|wiki|CompletionCandidate::new(wiki)).collect()
+}
+

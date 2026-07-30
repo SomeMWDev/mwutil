@@ -105,6 +105,7 @@ pub fn reset_database(config: &MWUtilConfig, db: &str, new: bool) -> anyhow::Res
     let result = Modules::Run(RunArgs {
         script: "install".to_string(),
         extra_args: install_args,
+        ..Default::default()
     }).run(config);
 
     fs::rename(local_settings_tmp, local_settings)?;
@@ -114,6 +115,7 @@ pub fn reset_database(config: &MWUtilConfig, db: &str, new: bool) -> anyhow::Res
     Modules::Run(RunArgs {
         script: "update".into(),
         extra_args: vec!["--wiki".into(), db.into(), "--quick".into()],
+        ..Default::default()
     }).run(config)?;
 
     if !new {

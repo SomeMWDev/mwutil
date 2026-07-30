@@ -30,6 +30,8 @@ pub fn execute(config: &MWUtilConfig, args: SqlArgs) -> anyhow::Result<()> {
         Modules::Run(RunArgs {
             script: "sql".to_string(),
             extra_args: args.extra_args,
+            // ToDo add wiki arg
+            ..Default::default()
         }).run(config)
     }
 }

@@ -72,9 +72,12 @@ fn reset(config: &MWUtilConfig) -> anyhow::Result<()> {
     Modules::Run(RunArgs {
         script: "CirrusSearch:UpdateSearchIndexConfig".into(),
         extra_args: vec!["--startOver".into()],
+        // ToDo add wiki arg
+        ..Default::default()
     }).run(config)?;
     Modules::Run(RunArgs {
         script: "CirrusSearch:ForceSearchIndex".into(),
+        // ToDo add wiki arg
         ..Default::default()
     }).run(config)?;
     spinner.finish();

@@ -84,7 +84,7 @@ pub fn execute(config: &MWUtilConfig, args: CloneArgs) -> anyhow::Result<()> {
         Modules::Composer(Default::default()).run(config)?;
     }
     if args.repo_type == RepoType::Extension {
-        Modules::Update.run(config)?;
+        Modules::Update(Default::default()).run(config)?;
     }
 
     Ok(())

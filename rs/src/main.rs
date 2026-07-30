@@ -9,7 +9,7 @@ use crate::modules::npm::NpmArgs;
 use crate::modules::opensearch::OpenSearchArgs;
 use crate::modules::pull::PullArgs;
 use crate::modules::reset::ResetArgs;
-use crate::modules::run::RunArgs;
+use crate::modules::run::{RunArgs, RunShorthandArgs};
 use crate::modules::security::SecurityArgs;
 use crate::modules::setup_repo::SetupRepoArgs;
 use crate::modules::sql::SqlArgs;
@@ -25,6 +25,7 @@ mod utils;
 mod exec;
 mod types;
 mod constants;
+mod farm_config;
 
 #[derive(Parser)]
 #[command(version, about)]
@@ -75,13 +76,13 @@ pub enum Modules {
     /// Sets up git-review in a local repository that was cloned from gerrit
     SetupGerrit(SetupRepoArgs),
     /// Starts an interactive PHP shell
-    Shell,
+    Shell(RunShorthandArgs),
     /// Starts an interactive SQL shell
     Sql(SqlArgs),
     /// Starts containers
     Up(ContainerActionArgs),
     /// Runs update.php
-    Update,
+    Update(RunShorthandArgs),
     /// Watches a file and copies it to the clipboard if it changes
     Watch(WatchArgs),
 }
@@ -123,15 +124,21 @@ impl Modules {
             Modules::Security(args) => modules::security::execute(config.ok(), args),
             Modules::SetupGerrit(args) => modules::setup_repo::execute(config.unwrap(), args, RepoOrigin::Gerrit),
             Modules::SetupGithub(args) => modules::setup_repo::execute(config.unwrap(), args, RepoOrigin::Github),
-            Modules::Shell => modules::run::execute(config.unwrap(), RunArgs {
+            Modules::Shell(args) => modules::run::execute(config.unwrap(), RunArgs {
                 script: "shell".into(),
-                ..Default::default()
+                extra_args: args.extra_args,
+                farm_command_args: args.farm_command_args
             }),
             Modules::Sql(args) => modules::sql::execute(config.unwrap(), args),
-            Modules::Update => modules::run::execute(config.unwrap(), RunArgs {
-                script: "update".into(),
-                extra_args: vec!["--quick".into()],
-            }),
+            Modules::Update(args) => {
+                let mut extra_args = vec!["--quick".into()];
+                extra_args.append(args.extra_args.clone().as_mut());
+                modules::run::execute(config.unwrap(), RunArgs {
+                    script: "update".into(),
+                    extra_args,
+                    farm_command_args: args.farm_command_args
+                })
+            },
             Modules::Up(args) => modules::container_action::up(config.unwrap(), args),
             Modules::Watch(args) => modules::watch::execute(args),
         }

@@ -8,12 +8,26 @@ use clap_complete::CompletionCandidate;
 use std::fs;
 use std::path::PathBuf;
 use std::process::Command;
+use crate::farm_config::{get_db_name_from_param, FarmCommandArgs};
 
 #[derive(Args, Default)]
 pub struct RunArgs {
     /// The name of the maintenance script to run
     #[arg(add = ArgValueCompleter::new(script_completer))]
     pub script: String,
+
+    #[command(flatten)]
+    pub farm_command_args: FarmCommandArgs,
+
+    /// Additional arguments to pass to the script
+    #[arg(trailing_var_arg = true)]
+    pub extra_args: Vec<String>,
+}
+
+#[derive(Args, Default)]
+pub struct RunShorthandArgs {
+    #[command(flatten)]
+    pub farm_command_args: FarmCommandArgs,
 
     /// Additional arguments to pass to the script
     #[arg(trailing_var_arg = true)]
@@ -34,6 +48,8 @@ pub fn execute(config: &MWUtilConfig, args: RunArgs) -> anyhow::Result<()> {
             cmd.arg("maintenance/".to_owned() + args.script.as_str() + ".php");
         }
     }
+    cmd.arg("--wiki");
+    cmd.arg(get_db_name_from_param(config, args.farm_command_args.wiki.clone())?);
     cmd.args(args.extra_args);
 
     cmd.in_container(config, Container::MediaWiki, None)?
