@@ -34,7 +34,7 @@ pub fn setup_gerrit(config: &MWUtilConfig, args: SetupRepoArgs) -> anyhow::Resul
     )?;
     set_git_config(
         &format!(
-            "url.\"ssh://{}@gerrit.wikimedia.org:29418/\".insteadOf",
+            "url.ssh://{}@gerrit.wikimedia.org:29418/.insteadOf",
             config.gerrit_username.clone().ok_or_else(|| anyhow!("Gerrit username not set!"))?.as_str()
         ),
         "https://gerrit.wikimedia.org/r/",
