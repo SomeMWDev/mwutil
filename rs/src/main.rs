@@ -25,7 +25,7 @@ mod utils;
 mod exec;
 mod types;
 mod constants;
-mod farm_config;
+mod farm;
 
 #[derive(Parser)]
 #[command(version, about)]

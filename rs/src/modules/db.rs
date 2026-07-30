@@ -20,7 +20,7 @@ use std::path::{Path, PathBuf};
 use std::process::Stdio;
 use std::thread::sleep;
 use std::time::Duration;
-use crate::farm_config::load_farm_config;
+use crate::farm::load_farm_config;
 
 #[derive(Args)]
 pub struct DbArgs {

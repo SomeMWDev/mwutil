@@ -6,7 +6,7 @@ use std::path::Path;
 use std::process::{Command, ExitStatus, Stdio};
 use std::thread;
 use std::thread::JoinHandle;
-use crate::farm_config::{get_db_name, get_wiki_from_param, Wiki};
+use crate::farm::{get_db_name, get_wiki_from_param, Wiki};
 
 pub trait ContainerSupport {
     fn in_container(

@@ -8,7 +8,7 @@ use clap_complete::CompletionCandidate;
 use std::fs;
 use std::path::PathBuf;
 use std::process::Command;
-use crate::farm_config::{get_db_name_from_param, FarmCommandArgs};
+use crate::farm::{get_db_name_from_param, FarmCommandArgs};
 
 #[derive(Args, Default)]
 pub struct RunArgs {

@@ -1,6 +1,6 @@
 use crate::config::MWUtilConfig;
 use crate::exec::{create_db_command, get_database_from_param, DbCommandType, DbCommandUser};
-use crate::farm_config::FarmCommandArgs;
+use crate::farm::FarmCommandArgs;
 use crate::modules::run::RunArgs;
 use crate::Modules;
 use clap::Args;
