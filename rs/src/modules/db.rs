@@ -20,6 +20,7 @@ use std::path::{Path, PathBuf};
 use std::process::Stdio;
 use std::thread::sleep;
 use std::time::Duration;
+use crate::farm_config::load_farm_config;
 
 #[derive(Args)]
 pub struct DbArgs {
@@ -86,6 +87,15 @@ pub fn execute_dump_command(config: &MWUtilConfig, args: DumpArgs)-> anyhow::Res
     }
 }
 
+fn get_dbs_to_dump(config: &MWUtilConfig) -> anyhow::Result<Vec<String>> {
+    let farm_config = load_farm_config()?;
+    if farm_config.is_none() {
+        let db = config.mw_database.clone().ok_or_else(|| anyhow!("MW database not set!"))?;
+        return Ok(vec![db]);
+    }
+    Ok(farm_config.unwrap().wikis)
+}
+
 pub fn create_dump(config: &MWUtilConfig, args: DumpSubArgs) -> anyhow::Result<()> {
     let dump_file = get_dump(config, &args.name, Existence::MustNotExist)?;
 
@@ -94,10 +104,19 @@ pub fn create_dump(config: &MWUtilConfig, args: DumpSubArgs) -> anyhow::Result<(
         config,
         DbCommandType::Dump,
         DbCommandUser::Mw,
-        Some(&["--skip-set-charset", "--default-character-set=utf8mb4"]),
+        Some(&[
+            "--skip-set-charset",
+            "--default-character-set=utf8mb4",
+            "--hex-blob",
+            "--databases",
+        ]),
         None,
-        None
+        Some(DbCommandDatabase::None)
     )?;
+    cmd.args(get_dbs_to_dump(config)?);
+    if config.db_type == DBType::Mysql {
+        cmd.arg("--set-gtid-purged=OFF");
+    }
     let file = File::create(&dump_file)
         .context("Failed to create dump file!")?;
     let status = cmd
@@ -106,7 +125,10 @@ pub fn create_dump(config: &MWUtilConfig, args: DumpSubArgs) -> anyhow::Result<(
         .context("Failed to dump database!")?;
 
     if !status.success() {
-        bail!("Failed to dump database: command returned non-zero status {:?}", status.code())
+        bail!(
+            "Failed to dump database: command returned non-zero status {:?}",
+            status.code().map_or_else(||"(unknown)".into(), |map|map.to_string())
+        )
     }
     spinner.finish();
 
@@ -153,12 +175,14 @@ pub fn delete_all_dumps(config: &MWUtilConfig) -> anyhow::Result<()> {
     Ok(())
 }
 
-pub fn drop_mw_database(config: &MWUtilConfig) -> anyhow::Result<()> {
-    let db = &config.mw_database.clone().ok_or_else(|| anyhow!("MW database not set!"))?;
-    drop_database(
-        config,
-        db
-    )
+fn drop_databases(config: &MWUtilConfig, dbs: &Vec<String>) -> anyhow::Result<()> {
+    for db in dbs {
+        drop_database(
+            config,
+            &db
+        )?
+    }
+    Ok(())
 }
 
 pub fn drop_database(config: &MWUtilConfig, db: &str) -> anyhow::Result<()> {
@@ -177,27 +201,32 @@ pub fn drop_database(config: &MWUtilConfig, db: &str) -> anyhow::Result<()> {
     Ok(())
 }
 
-pub fn import_dump(config: &MWUtilConfig, args: DumpSubArgs) -> anyhow::Result<()> {
-    let dump_file = get_dump(config, &args.name, Existence::MustExist)?;
-    let mut dump_reader = File::open(&dump_file)
-        .context("Failed to open dump file")?;
-
-    let mut spinner = SpinnerSequence::new(4, "Dropping database");
-    drop_mw_database(config)?;
-
-    spinner.next("Creating database");
+pub fn grant_privileges(config: &MWUtilConfig, db: &str) -> anyhow::Result<()> {
     let status = run_sql_query(
         config,
         DbCommandUser::Root,
         Some(DbCommandDatabase::None),
         format!(
-            "CREATE DATABASE `{}`;",
-            config.mw_database.clone().ok_or_else(|| anyhow!("MW database not set!"))?
+            "GRANT ALL PRIVILEGES ON `{}`.* TO {};",
+            db,
+            config.db_user.clone().ok_or_else(|| anyhow!("DB User not set!"))?
         ).as_str()
-    ).context("Failed to create database")?;
+    ).context("Failed to grant privileges")?;
     if !status.success() {
-        bail!("Failed to create database! Exit code: {:?}", status.code());
+        bail!("Failed to grant privileges! Exit code: {:?}", status.code());
     }
+    Ok(())
+}
+
+pub fn import_dump(config: &MWUtilConfig, args: DumpSubArgs) -> anyhow::Result<()> {
+    let dump_file = get_dump(config, &args.name, Existence::MustExist)?;
+    let mut dump_reader = File::open(&dump_file)
+        .context("Failed to open dump file")?;
+
+    let mut spinner = SpinnerSequence::new(4, "Dropping database(s)");
+
+    let dbs = get_dbs_to_dump(config)?;
+    drop_databases(config, &dbs)?;
 
     spinner.next("Importing dump");
     let mut process = create_db_command(
@@ -206,7 +235,7 @@ pub fn import_dump(config: &MWUtilConfig, args: DumpSubArgs) -> anyhow::Result<(
         DbCommandUser::Root,
         None,
         Some(&["-T".into()]),
-        None
+        Some(DbCommandDatabase::None)
     )?
         .stdin(Stdio::piped())
         .spawn()
@@ -219,6 +248,11 @@ pub fn import_dump(config: &MWUtilConfig, args: DumpSubArgs) -> anyhow::Result<(
     let status = process.wait()?;
     if !status.success() {
         bail!("Failed to import dump! Exit code: {:?}", status.code());
+    }
+
+    spinner.next("Granting database privileges");
+    for db in dbs {
+        grant_privileges(config, &db)?;
     }
 
     spinner.next("Restarting MW container");

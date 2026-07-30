@@ -2,7 +2,7 @@ use anyhow::{anyhow, bail, Context};
 use clap::{Args, Subcommand};
 use crate::config::MWUtilConfig;
 use crate::exec::{run_sql_query, DbCommandDatabase, DbCommandUser};
-use crate::modules::reset;
+use crate::modules::{db, reset};
 
 #[derive(Args)]
 pub struct FarmArgs {
@@ -47,19 +47,7 @@ fn install_wiki(config: &MWUtilConfig, args: InstallArgs) -> anyhow::Result<()> 
         bail!("Failed to create database! Exit code: {:?}", status.code());
     }
 
-    let status = run_sql_query(
-        config,
-        DbCommandUser::Root,
-        Some(DbCommandDatabase::None),
-        format!(
-            "GRANT ALL PRIVILEGES ON `{}`.* TO {};",
-            args.db_name,
-            config.db_user.clone().ok_or_else(|| anyhow!("DB User not set!"))?
-        ).as_str()
-    ).context("Failed to grant privileges")?;
-    if !status.success() {
-        bail!("Failed to grant privileges! Exit code: {:?}", status.code());
-    }
+    db::grant_privileges(config, &args.db_name)?;
 
     println!("Created database.");
 
