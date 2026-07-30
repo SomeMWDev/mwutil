@@ -1,4 +1,4 @@
-use anyhow::{anyhow, bail, Context};
+use anyhow::{bail, Context};
 use clap::{Args, Subcommand};
 use crate::config::MWUtilConfig;
 use crate::exec::{run_sql_query, DbCommandDatabase, DbCommandUser};

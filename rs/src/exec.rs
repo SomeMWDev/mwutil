@@ -6,6 +6,7 @@ use std::path::Path;
 use std::process::{Command, ExitStatus, Stdio};
 use std::thread;
 use std::thread::JoinHandle;
+use crate::farm_config::{get_db_name, Wiki};
 
 pub trait ContainerSupport {
     fn in_container(
@@ -134,7 +135,7 @@ pub enum DbCommandType {
 
 pub enum DbCommandDatabase {
     None,
-    Mw,
+    Mw(Wiki),
 }
 
 pub fn create_db_command(
@@ -150,9 +151,9 @@ pub fn create_db_command(
         DbCommandType::Query => config.db_type.get_query_command(),
     });
 
-    match database.unwrap_or(DbCommandDatabase::Mw) {
+    match database.unwrap_or(DbCommandDatabase::Mw(Wiki::Central)) {
         DbCommandDatabase::None => None,
-        DbCommandDatabase::Mw => config.mw_database.as_deref(),
+        DbCommandDatabase::Mw(wiki) => Some(get_db_name(config, wiki)?),
     }.map(|db|cmd.arg(db));
 
     match user {

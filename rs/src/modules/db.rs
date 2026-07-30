@@ -88,7 +88,7 @@ pub fn execute_dump_command(config: &MWUtilConfig, args: DumpArgs)-> anyhow::Res
 }
 
 fn get_dbs_to_dump(config: &MWUtilConfig) -> anyhow::Result<Vec<String>> {
-    let farm_config = load_farm_config()?;
+    let farm_config = load_farm_config(config)?;
     if farm_config.is_none() {
         let db = config.mw_database.clone().ok_or_else(|| anyhow!("MW database not set!"))?;
         return Ok(vec![db]);
