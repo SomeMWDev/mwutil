@@ -8,6 +8,7 @@ use crate::Modules;
 use anyhow::{anyhow, bail};
 use clap::{Args, ValueEnum};
 use std::fs;
+use crate::farm::FarmCommandArgs;
 
 // only supports top-level files in images/ !
 const EXCLUDED_UPLOADS: [&str; 2] = ["README", ".htaccess"];
@@ -114,7 +115,10 @@ pub fn reset_database(config: &MWUtilConfig, db: &str, new: bool) -> anyhow::Res
 
     Modules::Run(RunArgs {
         script: "update".into(),
-        extra_args: vec!["--wiki".into(), db.into(), "--quick".into()],
+        farm_command_args: FarmCommandArgs {
+            wiki: Some(db.into())
+        },
+        extra_args: vec!["--quick".into()],
         ..Default::default()
     }).run(config)?;
 

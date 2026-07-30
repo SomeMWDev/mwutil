@@ -4,16 +4,13 @@ use anyhow::{anyhow, Context};
 use serde_json::Value;
 use std::fs;
 use std::path::PathBuf;
+use std::process::Command;
 use clap::Args;
 use clap_complete::CompletionCandidate;
 
 pub enum Wiki {
     ByName(String),
     Central,
-}
-
-pub fn get_db_name_from_param(config: &MWUtilConfig, param: Option<String>) -> anyhow::Result<String> {
-    get_db_name(config, get_wiki_from_param(param))
 }
 
 pub fn get_wiki_from_param(param: Option<String>) -> Wiki {
@@ -85,5 +82,16 @@ fn wiki_completer(_current: &std::ffi::OsStr) -> Vec<CompletionCandidate> {
     };
 
     farm_config.unwrap().wikis.iter().map(|wiki|CompletionCandidate::new(wiki)).collect()
+}
+
+pub trait FarmSupport {
+    fn on_wiki(&mut self, config: &MWUtilConfig, wiki: Wiki) -> anyhow::Result<()>;
+}
+
+impl FarmSupport for Command {
+    fn on_wiki(&mut self, config: &MWUtilConfig, wiki: Wiki) -> anyhow::Result<()> {
+        self.args(vec!["--wiki", &get_db_name(config, wiki)?]);
+        Ok(())
+    }
 }
 

@@ -1,5 +1,6 @@
 use crate::config::{find_base_dir, MWUtilConfig};
 use crate::exec::ContainerSupport;
+use crate::farm::{get_wiki_from_param, FarmCommandArgs, FarmSupport};
 use crate::types::Container;
 use crate::utils::get_core_version;
 use clap::Args;
@@ -8,7 +9,6 @@ use clap_complete::CompletionCandidate;
 use std::fs;
 use std::path::PathBuf;
 use std::process::Command;
-use crate::farm::{get_db_name_from_param, FarmCommandArgs};
 
 #[derive(Args, Default)]
 pub struct RunArgs {
@@ -48,8 +48,7 @@ pub fn execute(config: &MWUtilConfig, args: RunArgs) -> anyhow::Result<()> {
             cmd.arg("maintenance/".to_owned() + args.script.as_str() + ".php");
         }
     }
-    cmd.arg("--wiki");
-    cmd.arg(get_db_name_from_param(config, args.farm_command_args.wiki.clone())?);
+    cmd.on_wiki(config, get_wiki_from_param(args.farm_command_args.wiki))?;
     cmd.args(args.extra_args);
 
     cmd.in_container(config, Container::MediaWiki, None)?
