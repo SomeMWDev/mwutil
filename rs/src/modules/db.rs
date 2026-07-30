@@ -11,7 +11,7 @@ use clap_complete::CompletionCandidate;
 use console::style;
 use dialoguer::Confirm;
 use rand::distr::Alphanumeric;
-use rand::Rng;
+use rand::RngExt;
 use regex::Regex;
 use std::ffi::OsStr;
 use std::fs;
