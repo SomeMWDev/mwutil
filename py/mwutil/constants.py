@@ -1,8 +1,8 @@
 SUPPORTED_BRANCHES = [
     "master",
     "REL1_43",
-    "REL1_44",
     "REL1_45",
+    "REL1_46",
 ]
 
 REPO_TYPES = [
