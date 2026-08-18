@@ -103,7 +103,7 @@ impl Modules {
 
     pub fn run_globally(self, config: Result<&MWUtilConfig, &anyhow::Error>) -> anyhow::Result<()> {
         if let Err(e) = config && !self.works_globally() {
-            bail!("The selected module only works inside of an mw-dev-kit environment.\n{e}");
+            bail!("The selected module only works inside of an mw-dev-kit environment.\n{e:#}");
         }
         match self {
             Modules::Bash(args) => modules::bash::execute(config.unwrap(), args),

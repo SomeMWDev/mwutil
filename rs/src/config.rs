@@ -98,7 +98,10 @@ pub fn load_mwutil_config(debug: bool) -> anyhow::Result<MWUtilConfig> {
         .ok_or_else(|| anyhow!("Failed to find basedir"))?;
     let config_dir = base_dir.join("config");
 
-    load_env(&config_dir);
+    if debug {
+        println!("Using config directory: {:?}", &config_dir);
+    }
+    load_env(&config_dir)?;
 
     let db_type = DBType::parse(
         env::var("MWC_DB_TYPE")
@@ -146,8 +149,9 @@ pub fn load_mwutil_config(debug: bool) -> anyhow::Result<MWUtilConfig> {
     })
 }
 
-fn load_env(config_dir: &Path) {
-    dotenv::from_path(config_dir.join(".env")).ok();
+fn load_env(config_dir: &Path) -> anyhow::Result<()> {
+    dotenv::from_path(config_dir.join(".env"))
+        .context("Failed to load .env file")
 }
 
 pub fn find_base_dir() -> Option<PathBuf> {
