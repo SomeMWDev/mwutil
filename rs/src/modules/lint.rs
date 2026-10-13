@@ -1,14 +1,14 @@
+use crate::Modules;
 use crate::config::MWUtilConfig;
-use crate::exec::ContainerSupport;
+use crate::exec::ExecutionHelper;
 use crate::modules::composer::ComposerArgs;
 use crate::modules::npm::NpmArgs;
-use crate::types::Container;
-use crate::Modules;
+use crate::types::{Container, ExecutionEnvironment};
+use anyhow::bail;
 use clap::{Args, ValueEnum};
 use std::path::PathBuf;
 use std::process::{Command, ExitStatus};
 use std::str::FromStr;
-use anyhow::bail;
 
 #[derive(Clone, ValueEnum)]
 enum LintType {
@@ -46,10 +46,10 @@ impl LintType {
         }
     }
 
-    fn can_run_in_container(&self) -> bool {
+    fn get_execution_environment(&self) -> ExecutionEnvironment  {
         match self {
-            LintType::Eslint => false,
-            LintType::Phan | LintType::Phpcs => true,
+            LintType::Eslint => ExecutionEnvironment::Fresh,
+            LintType::Phan | LintType::Phpcs => ExecutionEnvironment::MWContainer(Container::MediaWiki),
         }
     }
 
@@ -62,9 +62,7 @@ impl LintType {
             cmd.current_dir(PathBuf::from_str(folder.as_str())?);
         }
 
-        if self.can_run_in_container() {
-            cmd = cmd.in_container(config, Container::MediaWiki, None)?;
-        }
+        cmd = cmd.in_environment(config, self.get_execution_environment(), None)?;
 
         let status = cmd.status()?;
         Ok(status)
