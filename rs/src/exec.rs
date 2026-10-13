@@ -1,5 +1,5 @@
 use crate::config::MWUtilConfig;
-use crate::types::Container;
+use crate::types::{Container, ExecutionEnvironment};
 use anyhow::{anyhow, Context};
 use std::io::{BufRead, BufReader};
 use std::path::Path;
@@ -7,6 +7,42 @@ use std::process::{Command, ExitStatus, Stdio};
 use std::thread;
 use std::thread::JoinHandle;
 use crate::farm::{get_db_name, get_wiki_from_param, Wiki};
+
+pub trait ExecutionHelper {
+    fn in_environment(
+        self,
+        config: &MWUtilConfig,
+        execution_environment: ExecutionEnvironment,
+        exec_options: Option<&[String]>
+    ) -> anyhow::Result<Self> where Self: Sized;
+}
+
+impl ExecutionHelper for Command {
+    fn in_environment(
+        self,
+        config: &MWUtilConfig,
+        execution_environment: ExecutionEnvironment,
+        exec_options: Option<&[String]>
+    ) -> anyhow::Result<Self> {
+        match execution_environment {
+            ExecutionEnvironment::Fresh => {
+                let mut cmd = Command::new("fresh-node");
+                let mut cmd_args: Vec<String> = exec_options.unwrap_or_default().to_vec();
+                cmd_args.extend([
+                    "--".into(),
+                    self.get_program()
+                        .to_string_lossy()
+                        .to_string()
+                ]);
+                cmd_args.extend(self.get_args().map(|s| s.to_string_lossy().into_owned()));
+                cmd.args(&cmd_args);
+                Ok(cmd)
+            },
+            ExecutionEnvironment::Host => Ok(self),
+            ExecutionEnvironment::MWContainer(container) => self.in_container(config, container, exec_options)
+        }
+    }
+}
 
 pub trait ContainerSupport {
     fn in_container(
