@@ -40,6 +40,7 @@ impl LintType {
 
     fn get_lint_args(&self) -> &[&str] {
         match self {
+            // TODO: Run 'test' if lint doesn't exist
             LintType::Eslint => &["run", "lint"],
             LintType::Phan => &["run", "phan"],
             LintType::Phpcs => &["run", "test"],
