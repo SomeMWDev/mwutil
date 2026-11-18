@@ -36,6 +36,13 @@ impl ExecutionHelper for Command {
                 ]);
                 cmd_args.extend(self.get_args().map(|s| s.to_string_lossy().into_owned()));
                 cmd.args(&cmd_args);
+                if let Some(workdir) = self.get_current_dir() {
+                    cmd.current_dir(config.base_dir.join(workdir));
+                } else {
+                    // Assume the user wants to lint core if no args are supplied
+                    // TODO: Implement proper logic for host -> container path mappings
+                    cmd.current_dir(config.core_dir.clone());
+                }
                 Ok(cmd)
             },
             ExecutionEnvironment::Host => Ok(self),
