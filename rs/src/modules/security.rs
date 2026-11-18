@@ -27,6 +27,10 @@ pub struct CreatePatchArgs {
     /// Uses the branch name as the patch name
     #[arg(long)]
     use_branch_name: bool,
+
+    /// The number of commits that should be added to the patch
+    #[arg(long, short)]
+    number_of_commits: Option<usize>,
 }
 
 pub fn execute(config: Option<&MWUtilConfig>, args: SecurityArgs) -> anyhow::Result<()> {
@@ -78,8 +82,9 @@ fn create_patch(config: Option<&MWUtilConfig>, args: CreatePatchArgs) -> anyhow:
 
     let safe_name = name.replace(['/', '\\'], "-");
     let patch_file = folder.join(format!("{safe_name}.patch"));
+    let selected_commits = format!("HEAD~{}..HEAD", args.number_of_commits.unwrap_or(1));
     let status = Command::new("git")
-        .args(["format-patch", "HEAD^", "--output", patch_file.to_string_lossy().as_ref()])
+        .args(["format-patch", &selected_commits, "--output", patch_file.to_string_lossy().as_ref()])
         .status()?;
     if !status.success() {
         bail!("Failed to create patch!");
