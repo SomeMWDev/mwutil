@@ -106,6 +106,12 @@ impl Display for MWVersion {
     }
 }
 
+pub enum ExecutionEnvironment {
+    Fresh,
+    Host,
+    MWContainer(Container)
+}
+
 pub enum Container {
     Database(DBType),
     MediaWiki,
